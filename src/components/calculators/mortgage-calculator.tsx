@@ -834,9 +834,11 @@ export function MortgageCalculator() {
                 <p className="text-xs text-slate uppercase tracking-wide">Time Saved</p>
                 <p className="text-base font-serif text-charcoal">
                   {Math.floor(extraPaymentResults.monthsSaved / 12) > 0 && (
-                    <>{Math.floor(extraPaymentResults.monthsSaved / 12)} yr{Math.floor(extraPaymentResults.monthsSaved / 12) !== 1 ? "s" : ""} </>
+                    <>{Math.floor(extraPaymentResults.monthsSaved / 12)} yr{Math.floor(extraPaymentResults.monthsSaved / 12) !== 1 ? "s" : ""}</>
                   )}
-                  {extraPaymentResults.monthsSaved % 12} mo
+                  {extraPaymentResults.monthsSaved % 12 > 0 && (
+                    <>{Math.floor(extraPaymentResults.monthsSaved / 12) > 0 ? " " : ""}{extraPaymentResults.monthsSaved % 12} mo</>
+                  )}
                 </p>
               </div>
               <div>
@@ -845,7 +847,7 @@ export function MortgageCalculator() {
               </div>
             </div>
             <p className="text-xs text-slate mt-2">
-              Payoff: {Math.floor(extraPaymentResults.actualMonths / 12)} yr {extraPaymentResults.actualMonths % 12} mo (vs {inputs.years} yr)
+              Payoff: {Math.floor(extraPaymentResults.actualMonths / 12)} yr{extraPaymentResults.actualMonths % 12 > 0 ? ` ${extraPaymentResults.actualMonths % 12} mo` : ""} (vs {inputs.years} yr)
             </p>
           </div>
         )}
