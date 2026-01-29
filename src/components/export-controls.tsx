@@ -7,7 +7,7 @@ interface ExportControlsProps {
 
 export function ExportControls({ onExportCSV, onPrint }: ExportControlsProps) {
   return (
-    <div className="flex items-center gap-1 print:hidden">
+    <div className="flex items-center gap-1">
       <button
         onClick={onExportCSV}
         className="p-1.5 text-slate hover:text-charcoal transition-colors"
