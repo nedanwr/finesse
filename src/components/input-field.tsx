@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useId } from "react";
 import { formatWithCommas, parseFormattedNumber } from "../lib/format";
 
 interface InputFieldProps {
@@ -26,6 +26,8 @@ export function InputField({
   id,
   "aria-labelledby": ariaLabelledBy,
 }: InputFieldProps) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
   const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<number>(0);
 
@@ -109,9 +111,14 @@ export function InputField({
 
   return (
     <div className="group">
-      <label className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
-        {label}
-      </label>
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase"
+        >
+          {label}
+        </label>
+      )}
       <div className="relative">
         {prefix && (
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate">
@@ -125,7 +132,7 @@ export function InputField({
           value={displayValue}
           onChange={handleChange}
           onBlur={handleBlur}
-          id={id}
+          id={inputId}
           aria-labelledby={ariaLabelledBy}
           className={`
             w-full bg-cream border-2 border-sand rounded-xl py-3 text-base font-medium
