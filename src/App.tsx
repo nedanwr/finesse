@@ -14,6 +14,58 @@ const modes: { id: CalculatorMode; label: string; icon: LucideIcon }[] = [
   { id: "investment", label: "Invest", icon: TrendingUp },
 ];
 
+interface ModeButtonProps {
+  mode: { id: CalculatorMode; label: string; icon: LucideIcon };
+  isPressed: boolean;
+  onClick: () => void;
+  variant: "desktop" | "mobile";
+}
+
+function ModeButton({ mode: m, isPressed, onClick, variant }: ModeButtonProps) {
+  const baseStyles = "rounded-lg font-medium text-sm tracking-wide transition-all duration-300 ease-out";
+  const variantStyles = variant === "desktop"
+    ? "flex items-center gap-1.5 py-2 px-4"
+    : "flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3";
+  const stateStyles = isPressed
+    ? "bg-charcoal text-ivory shadow-md"
+    : "text-slate hover:text-charcoal";
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={isPressed}
+      className={`${baseStyles} ${variantStyles} ${stateStyles}`}
+    >
+      <m.icon size={16} aria-hidden="true" />
+      {m.label}
+    </button>
+  );
+}
+
+interface ModeSwitcherProps {
+  currentMode: CalculatorMode;
+  onModeChange: (mode: CalculatorMode) => void;
+  variant: "desktop" | "mobile";
+  className?: string;
+}
+
+function ModeSwitcher({ currentMode, onModeChange, variant, className = "" }: ModeSwitcherProps) {
+  return (
+    <div role="group" aria-label="Calculator type" className={`flex bg-cream rounded-xl p-1 ${className}`}>
+      {modes.map((m) => (
+        <ModeButton
+          key={m.id}
+          mode={m}
+          isPressed={currentMode === m.id}
+          onClick={() => onModeChange(m.id)}
+          variant={variant}
+        />
+      ))}
+    </div>
+  );
+}
+
 function App() {
   const [mode, setMode] = useState<CalculatorMode>("loan");
 
@@ -33,71 +85,19 @@ function App() {
           <h1 className="font-serif text-2xl md:text-3xl text-charcoal">
             Finesse
           </h1>
-
-          {/* Mode Switcher - inline in header */}
-          <div
-            role="group"
-            aria-label="Calculator type"
-            className="hidden sm:flex bg-cream rounded-xl p-1"
-          >
-            {modes.map((m) => {
-              const isPressed = mode === m.id;
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => setMode(m.id)}
-                  aria-pressed={isPressed}
-                  className={`
-                    flex items-center gap-1.5 py-2 px-4 rounded-lg font-medium text-sm tracking-wide
-                    transition-all duration-300 ease-out
-                    ${
-                      isPressed
-                        ? "bg-charcoal text-ivory shadow-md"
-                        : "text-slate hover:text-charcoal"
-                    }
-                  `}
-                >
-                  <m.icon size={16} aria-hidden="true" />
-                  {m.label}
-                </button>
-              );
-            })}
-          </div>
+          <ModeSwitcher
+            currentMode={mode}
+            onModeChange={setMode}
+            variant="desktop"
+            className="hidden sm:flex"
+          />
         </div>
-
         <ThemeSwitcher />
       </header>
 
       {/* Mobile Mode Switcher */}
       <div className="sm:hidden relative shrink-0 px-4 py-3 border-b border-sand">
-        <div
-          role="group"
-          aria-label="Calculator type"
-          className="flex bg-cream rounded-xl p-1"
-        >
-          {modes.map((m) => {
-            const isPressed = mode === m.id;
-            return (
-              <button
-                key={m.id}
-                onClick={() => setMode(m.id)}
-                aria-pressed={isPressed}
-                className={`
-                  flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg font-medium text-sm tracking-wide
-                  transition-all duration-300 ease-out
-                  ${
-                    isPressed
-                      ? "bg-charcoal text-ivory shadow-md"
-                      : "text-slate hover:text-charcoal"
-                  }
-                `}
-              >
-                <m.icon size={16} aria-hidden="true" />
-                {m.label}
-              </button>
-            );
-          })}
-        </div>
+        <ModeSwitcher currentMode={mode} onModeChange={setMode} variant="mobile" />
       </div>
 
       {/* Main Content */}
