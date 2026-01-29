@@ -85,8 +85,8 @@ function App() {
       </div>
 
       {/* Main Content */}
-      <main className="relative flex-1 min-h-0">
-        <div className="h-full max-w-[1600px] mx-auto px-4 xl:px-8 py-4">
+      <main className="relative flex-1 min-h-0 overflow-y-auto">
+        <div className="max-w-[1600px] mx-auto px-4 xl:px-8 py-4 lg:h-full">
           {mode === "loan" && <LoanCalculator />}
           {mode === "mortgage" && <MortgageCalculator />}
           {mode === "investment" && <InvestmentCalculator />}
