@@ -35,25 +35,33 @@ function App() {
           </h1>
 
           {/* Mode Switcher - inline in header */}
-          <div className="hidden sm:flex bg-cream rounded-xl p-1">
-            {modes.map((m) => (
-              <button
-                key={m.id}
-                onClick={() => setMode(m.id)}
-                className={`
-                  flex items-center gap-1.5 py-2 px-4 rounded-lg font-medium text-sm tracking-wide
-                  transition-all duration-300 ease-out
-                  ${
-                    mode === m.id
-                      ? "bg-charcoal text-ivory shadow-md"
-                      : "text-slate hover:text-charcoal"
-                  }
-                `}
-              >
-                <m.icon size={16} />
-                {m.label}
-              </button>
-            ))}
+          <div
+            role="group"
+            aria-label="Calculator type"
+            className="hidden sm:flex bg-cream rounded-xl p-1"
+          >
+            {modes.map((m) => {
+              const isPressed = mode === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setMode(m.id)}
+                  aria-pressed={isPressed}
+                  className={`
+                    flex items-center gap-1.5 py-2 px-4 rounded-lg font-medium text-sm tracking-wide
+                    transition-all duration-300 ease-out
+                    ${
+                      isPressed
+                        ? "bg-charcoal text-ivory shadow-md"
+                        : "text-slate hover:text-charcoal"
+                    }
+                  `}
+                >
+                  <m.icon size={16} aria-hidden="true" />
+                  {m.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -62,25 +70,33 @@ function App() {
 
       {/* Mobile Mode Switcher */}
       <div className="sm:hidden relative shrink-0 px-4 py-3 border-b border-sand">
-        <div className="flex bg-cream rounded-xl p-1">
-          {modes.map((m) => (
-            <button
-              key={m.id}
-              onClick={() => setMode(m.id)}
-              className={`
-                flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg font-medium text-sm tracking-wide
-                transition-all duration-300 ease-out
-                ${
-                  mode === m.id
-                    ? "bg-charcoal text-ivory shadow-md"
-                    : "text-slate hover:text-charcoal"
-                }
-              `}
-            >
-              <m.icon size={16} />
-              {m.label}
-            </button>
-          ))}
+        <div
+          role="group"
+          aria-label="Calculator type"
+          className="flex bg-cream rounded-xl p-1"
+        >
+          {modes.map((m) => {
+            const isPressed = mode === m.id;
+            return (
+              <button
+                key={m.id}
+                onClick={() => setMode(m.id)}
+                aria-pressed={isPressed}
+                className={`
+                  flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg font-medium text-sm tracking-wide
+                  transition-all duration-300 ease-out
+                  ${
+                    isPressed
+                      ? "bg-charcoal text-ivory shadow-md"
+                      : "text-slate hover:text-charcoal"
+                  }
+                `}
+              >
+                <m.icon size={16} aria-hidden="true" />
+                {m.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
