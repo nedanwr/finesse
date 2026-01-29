@@ -381,7 +381,7 @@ export function LoanCalculator() {
                     id="loan-extra-yearly-month"
                     value={inputs.extraYearlyMonth}
                     onChange={(e) =>
-                      setInputs((prev) => ({ ...prev, extraYearlyMonth: parseInt(e.target.value) }))
+                      setInputs((prev) => ({ ...prev, extraYearlyMonth: parseInt(e.target.value, 10) || 1 }))
                     }
                     className="w-full bg-cream border-2 border-sand rounded-xl py-3 px-3 text-base font-medium text-charcoal focus:border-terracotta focus:bg-ivory transition-all duration-200"
                   >
@@ -491,9 +491,11 @@ export function LoanCalculator() {
                 <p className="text-xs text-slate uppercase tracking-wide">Time Saved</p>
                 <p className="text-base font-serif text-charcoal">
                   {Math.floor(extraPaymentResults.monthsSaved / 12) > 0 && (
-                    <>{Math.floor(extraPaymentResults.monthsSaved / 12)} yr{Math.floor(extraPaymentResults.monthsSaved / 12) !== 1 ? "s" : ""} </>
+                    <>{Math.floor(extraPaymentResults.monthsSaved / 12)} yr{Math.floor(extraPaymentResults.monthsSaved / 12) !== 1 ? "s" : ""}</>
                   )}
-                  {extraPaymentResults.monthsSaved % 12} mo
+                  {extraPaymentResults.monthsSaved % 12 > 0 && (
+                    <>{Math.floor(extraPaymentResults.monthsSaved / 12) > 0 ? " " : ""}{extraPaymentResults.monthsSaved % 12} mo</>
+                  )}
                 </p>
               </div>
               <div>
@@ -502,7 +504,7 @@ export function LoanCalculator() {
               </div>
             </div>
             <p className="text-xs text-slate mt-2">
-              Payoff: {Math.floor(extraPaymentResults.actualMonths / 12)} yr {extraPaymentResults.actualMonths % 12} mo (vs {inputs.years} yr)
+              Payoff: {Math.floor(extraPaymentResults.actualMonths / 12)} yr{extraPaymentResults.actualMonths % 12 > 0 ? ` ${extraPaymentResults.actualMonths % 12} mo` : ""} (vs {inputs.years} yr)
             </p>
           </div>
         )}
