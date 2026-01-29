@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Percent, Home, TrendingUp, type LucideIcon } from "lucide-react";
 
 import { ThemeSwitcher } from "./components/theme-switcher";
 import { LoanCalculator } from "./components/calculators/loan-calculator";
@@ -7,17 +8,17 @@ import { InvestmentCalculator } from "./components/calculators/investment-calcul
 
 type CalculatorMode = "loan" | "mortgage" | "investment";
 
-const modes: { id: CalculatorMode; label: string; icon: string }[] = [
-  { id: "loan", label: "Loan", icon: "%" },
-  { id: "mortgage", label: "Mortgage", icon: "⌂" },
-  { id: "investment", label: "Invest", icon: "↗" },
+const modes: { id: CalculatorMode; label: string; icon: LucideIcon }[] = [
+  { id: "loan", label: "Loan", icon: Percent },
+  { id: "mortgage", label: "Mortgage", icon: Home },
+  { id: "investment", label: "Invest", icon: TrendingUp },
 ];
 
 function App() {
   const [mode, setMode] = useState<CalculatorMode>("loan");
 
   return (
-    <div className="min-h-screen bg-ivory">
+    <div className="h-screen bg-ivory flex flex-col overflow-hidden">
       {/* Subtle texture overlay */}
       <div
         className="fixed inset-0 pointer-events-none opacity-30"
@@ -26,54 +27,71 @@ function App() {
         }}
       />
 
-      <div className="relative max-w-lg mx-auto px-6 py-12 md:py-20">
-        {/* Theme Switcher */}
-        <div className="absolute top-6 right-6 animate-fade-in">
-          <ThemeSwitcher />
-        </div>
-
-        {/* Header */}
-        <header className="text-center mb-12 animate-slide-up">
-          <h1 className="font-serif text-5xl md:text-6xl text-charcoal mb-3">
+      {/* Header */}
+      <header className="relative shrink-0 flex items-center justify-between px-6 lg:px-10 py-4 border-b border-sand">
+        <div className="flex items-center gap-8">
+          <h1 className="font-serif text-2xl md:text-3xl text-charcoal">
             Finesse
           </h1>
-          <p className="text-slate text-lg tracking-wide">
-            Financial calculations, simplified
-          </p>
-        </header>
 
-        {/* Mode Switcher */}
-        <div
-          className="flex bg-cream rounded-2xl p-1.5 mb-10 animate-slide-up"
-          style={{ animationDelay: "0.1s" }}
-        >
+          {/* Mode Switcher - inline in header */}
+          <div className="hidden sm:flex bg-cream rounded-xl p-1">
+            {modes.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => setMode(m.id)}
+                className={`
+                  flex items-center gap-1.5 py-2 px-4 rounded-lg font-medium text-sm tracking-wide
+                  transition-all duration-300 ease-out
+                  ${
+                    mode === m.id
+                      ? "bg-charcoal text-ivory shadow-md"
+                      : "text-slate hover:text-charcoal"
+                  }
+                `}
+              >
+                <m.icon size={16} />
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <ThemeSwitcher />
+      </header>
+
+      {/* Mobile Mode Switcher */}
+      <div className="sm:hidden relative shrink-0 px-4 py-3 border-b border-sand">
+        <div className="flex bg-cream rounded-xl p-1">
           {modes.map((m) => (
             <button
               key={m.id}
               onClick={() => setMode(m.id)}
               className={`
-                flex-1 py-3.5 px-4 rounded-xl font-medium text-sm tracking-wide
+                flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-lg font-medium text-sm tracking-wide
                 transition-all duration-300 ease-out
                 ${
                   mode === m.id
-                    ? "bg-charcoal text-ivory shadow-lg"
+                    ? "bg-charcoal text-ivory shadow-md"
                     : "text-slate hover:text-charcoal"
                 }
               `}
             >
-              <span className="mr-2">{m.icon}</span>
+              <m.icon size={16} />
               {m.label}
             </button>
           ))}
         </div>
+      </div>
 
-        {/* Calculator */}
-        <main className="animate-slide-up" style={{ animationDelay: "0.2s" }}>
+      {/* Main Content */}
+      <main className="relative flex-1 min-h-0">
+        <div className="h-full max-w-[1600px] mx-auto px-4 xl:px-8 py-4">
           {mode === "loan" && <LoanCalculator />}
           {mode === "mortgage" && <MortgageCalculator />}
           {mode === "investment" && <InvestmentCalculator />}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
