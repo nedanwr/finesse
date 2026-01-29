@@ -14,23 +14,23 @@ export function ResultCard({
   return (
     <div
       className={`
-        rounded-2xl p-6 transition-all duration-300
+        rounded-xl p-4 transition-all duration-300
         ${highlight ? "bg-terracotta text-ivory" : "bg-cream text-charcoal"}
       `}
     >
       <p
-        className={`text-sm font-medium tracking-wide uppercase mb-1 ${highlight ? "text-ivory/70" : "text-slate"}`}
+        className={`text-xs font-medium tracking-wide uppercase mb-0.5 ${highlight ? "text-ivory/70" : "text-slate"}`}
       >
         {label}
       </p>
       <p
-        className={`text-3xl font-serif ${highlight ? "text-ivory" : "text-charcoal"}`}
+        className={`text-2xl font-serif ${highlight ? "text-ivory" : "text-charcoal"}`}
       >
         {value}
       </p>
       {subtext && (
         <p
-          className={`text-sm mt-2 ${highlight ? "text-ivory/60" : "text-slate"}`}
+          className={`text-xs mt-1 ${highlight ? "text-ivory/60" : "text-slate"}`}
         >
           {subtext}
         </p>
