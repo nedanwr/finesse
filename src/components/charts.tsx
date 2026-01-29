@@ -480,6 +480,94 @@ export function InvestmentBreakdownChart({ contributions, interest }: Investment
   );
 }
 
+interface InvestmentStackedChartProps {
+  schedule: InvestmentGrowthRow[];
+}
+
+export function InvestmentStackedChart({ schedule }: InvestmentStackedChartProps) {
+  const COLORS = useColors();
+  if (schedule.length === 0) return null;
+
+  const data = schedule.map((row) => ({
+    year: row.year,
+    contributions: row.contributions,
+    interest: row.interest,
+  }));
+
+  return (
+    <div className="bg-cream rounded-2xl p-4">
+      <h3 className="text-sm font-semibold text-charcoal mb-3">Contributions vs Interest</h3>
+      <div className="h-56">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="contribStackGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={COLORS.contributions} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={COLORS.contributions} stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="interestStackGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={COLORS.growth} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={COLORS.growth} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <XAxis
+              dataKey="year"
+              tick={{ fontSize: 11, fill: COLORS.text }}
+              tickLine={false}
+              axisLine={{ stroke: COLORS.axis }}
+            />
+            <YAxis
+              tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+              tick={{ fontSize: 11, fill: COLORS.text }}
+              tickLine={false}
+              axisLine={false}
+              width={45}
+            />
+            <Tooltip
+              formatter={(value) => formatCurrency(value as number)}
+              labelFormatter={(label) => `Year ${label}`}
+              contentStyle={{
+                backgroundColor: COLORS.tooltip.bg,
+                border: `1px solid ${COLORS.tooltip.border}`,
+                borderRadius: "8px",
+                fontSize: "12px",
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="contributions"
+              stackId="1"
+              stroke={COLORS.contributions}
+              strokeWidth={2}
+              fill="url(#contribStackGradient)"
+              name="Contributions"
+            />
+            <Area
+              type="monotone"
+              dataKey="interest"
+              stackId="1"
+              stroke={COLORS.growth}
+              strokeWidth={2}
+              fill="url(#interestStackGradient)"
+              name="Interest"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="flex justify-center gap-6 mt-2">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.contributions }} />
+          <span className="text-xs text-slate">Contributions</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS.growth }} />
+          <span className="text-xs text-slate">Interest</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface MortgageCostChartProps {
   principal: number;
   interest: number;
