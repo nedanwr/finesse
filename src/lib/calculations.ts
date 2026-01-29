@@ -498,10 +498,10 @@ export function calculateLoanWithExtraPayments(
     const interest = balance * monthlyRate;
     totalInterest += interest;
 
-    // Base payment
-    let payment = Math.min(standardMonthlyPayment, balance + interest);
+    // Base payment (capped at balance + interest)
+    const payment = Math.min(standardMonthlyPayment, balance + interest);
 
-    // Add extra payments based on type
+    // Determine nominal extra based on type
     let extra = 0;
     if (extraPayment.type === "extra_monthly") {
       extra = extraPayment.extraMonthly;
@@ -511,18 +511,25 @@ export function calculateLoanWithExtraPayments(
       extra = extraPayment.extraYearlyAmount;
     }
 
-    // Apply payment to principal
-    const principalPayment = Math.min(payment - interest + extra, balance);
+    // Principal from base payment
+    const basePrincipal = Math.max(0, payment - interest);
+
+    // Extra applied is constrained by remaining balance after base principal
+    const extraApplied = Math.min(extra, Math.max(0, balance - basePrincipal));
+
+    // Total principal payment and balance update
+    const principalPayment = basePrincipal + extraApplied;
     balance = Math.max(0, balance - principalPayment);
-    const actualExtraUsed = Math.max(0, principalPayment - Math.max(0, payment - interest));
-    totalPaid += payment + actualExtraUsed;
+
+    // Add payment and actual extra used to total paid
+    totalPaid += payment + extraApplied;
   }
 
   const monthsSaved = standardNumPayments - months;
   const interestSaved = standardTotalInterest - totalInterest;
 
-  // Calculate effective monthly payment (average)
-  const effectiveMonthlyPayment = totalPaid / months;
+  // Calculate effective monthly payment (average), guard against division by zero
+  const effectiveMonthlyPayment = months > 0 ? totalPaid / months : 0;
 
   return {
     standardMonthlyPayment,
