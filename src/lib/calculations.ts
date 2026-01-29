@@ -517,7 +517,8 @@ export function calculateLoanWithExtraPayments(
     // Apply payment to principal
     const principalPayment = Math.min(payment - interest + extra, balance);
     balance = Math.max(0, balance - principalPayment);
-    totalPaid += payment + Math.min(extra, principalPayment + interest);
+    const actualExtraUsed = Math.max(0, principalPayment - Math.max(0, payment - interest));
+    totalPaid += payment + actualExtraUsed;
   }
 
   const monthsSaved = standardNumPayments - months;
