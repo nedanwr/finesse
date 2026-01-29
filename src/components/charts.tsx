@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   AreaChart,
   Area,
@@ -14,27 +14,11 @@ import {
 } from "recharts";
 import { formatCurrency } from "../lib/format";
 import type { AmortizationRow, InvestmentGrowthRow } from "../lib/calculations";
-
-// Hook to detect if dark mode is active
-function useIsDarkMode() {
-  const [isDark, setIsDark] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains("dark"));
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  return isDark;
-}
+import { useTheme } from "./theme-provider";
 
 // Color palette - returns theme-aware colors
 function useColors() {
-  const isDark = useIsDarkMode();
+  const { isDark } = useTheme();
 
   return {
     principal: isDark ? "#a8a29e" : "#2d2a26", // stone in dark, charcoal in light
@@ -127,9 +111,11 @@ export function BalanceChart({ schedule, periodLabel = "Year", monthlyCosts }: B
         <h3 className="text-sm font-semibold text-charcoal">
           {view === "balance" ? "Principal & Interest" : "All Payments"}
         </h3>
-        <div className="flex bg-sand rounded-lg p-0.5">
+        <div role="group" aria-label="Chart view" className="flex bg-sand rounded-lg p-0.5">
           <button
+            type="button"
             onClick={() => setView("balance")}
+            aria-pressed={view === "balance"}
             className={`px-2 py-1 text-xs font-medium rounded-md transition-all ${
               view === "balance" ? "bg-charcoal text-ivory" : "text-slate hover:text-charcoal"
             }`}
@@ -137,7 +123,9 @@ export function BalanceChart({ schedule, periodLabel = "Year", monthlyCosts }: B
             Balance
           </button>
           <button
+            type="button"
             onClick={() => setView("payments")}
+            aria-pressed={view === "payments"}
             className={`px-2 py-1 text-xs font-medium rounded-md transition-all ${
               view === "payments" ? "bg-charcoal text-ivory" : "text-slate hover:text-charcoal"
             }`}
