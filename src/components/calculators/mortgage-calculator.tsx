@@ -2,7 +2,15 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Plus, X } from "lucide-react";
 import { InputField } from "../input-field";
 import { formatCurrency, formatCurrencyPrecise, formatWithCommas, parseFormattedNumber } from "../../lib/format";
-import { calculateMortgage, calculateLoanPayment, generateAmortizationSchedule } from "../../lib/calculations";
+import {
+  calculateMortgage,
+  calculateLoanPayment,
+  calculateLoanWithExtraPayments,
+  generateAmortizationSchedule,
+  generateAmortizationScheduleWithExtra,
+  type ExtraPaymentType,
+  type ExtraPaymentConfig,
+} from "../../lib/calculations";
 import { AmortizationTable } from "../amortization-table";
 import { BalanceChart, MortgageCostChart } from "../charts";
 import { ExportControls } from "../export-controls";
@@ -31,6 +39,10 @@ interface MortgageInputs {
   insurance: number;
   hoa: number;
   customCosts: CustomCost[];
+  extraPaymentType: ExtraPaymentType;
+  extraMonthly: number;
+  extraYearlyAmount: number;
+  extraYearlyMonth: number;
 }
 
 
@@ -353,6 +365,10 @@ export function MortgageCalculator() {
     insurance: 1800,
     hoa: 0,
     customCosts: [],
+    extraPaymentType: "none",
+    extraMonthly: 200,
+    extraYearlyAmount: 2000,
+    extraYearlyMonth: 1,
   });
 
   // Calculate actual dollar values based on mode
@@ -396,6 +412,27 @@ export function MortgageCalculator() {
     [results.loanAmount, inputs.rate, inputs.years]
   );
 
+  // Extra payment configuration
+  const extraPaymentConfig: ExtraPaymentConfig = useMemo(() => ({
+    type: inputs.extraPaymentType,
+    extraMonthly: inputs.extraMonthly,
+    extraYearlyAmount: inputs.extraYearlyAmount,
+    extraYearlyMonth: inputs.extraYearlyMonth,
+  }), [inputs.extraPaymentType, inputs.extraMonthly, inputs.extraYearlyAmount, inputs.extraYearlyMonth]);
+
+  // Calculate mortgage with extra payments
+  const extraPaymentResults = useMemo(() => {
+    if (inputs.extraPaymentType === "none") return null;
+    return calculateLoanWithExtraPayments(
+      results.loanAmount,
+      inputs.rate,
+      inputs.years,
+      extraPaymentConfig
+    );
+  }, [results.loanAmount, inputs.rate, inputs.years, inputs.extraPaymentType, extraPaymentConfig]);
+
+  const hasExtraPayments = extraPaymentResults !== null && inputs.extraPaymentType !== "none";
+
   // Calculate first month's principal vs interest split
   const firstMonthBreakdown = useMemo(() => {
     const monthlyRate = inputs.rate / 100 / 12;
@@ -416,12 +453,20 @@ export function MortgageCalculator() {
 
   // Generate amortization schedule
   const amortizationSchedule = useMemo(() => {
+    if (inputs.extraPaymentType !== "none") {
+      return generateAmortizationScheduleWithExtra(results.loanAmount, inputs.rate, inputs.years, extraPaymentConfig);
+    }
     return generateAmortizationSchedule(results.loanAmount, inputs.rate, inputs.years);
-  }, [results.loanAmount, inputs.rate, inputs.years]);
+  }, [results.loanAmount, inputs.rate, inputs.years, inputs.extraPaymentType, extraPaymentConfig]);
 
-  const totalPropertyTax = annualPropertyTax * inputs.years;
-  const totalInsurance = inputs.insurance * inputs.years;
-  const totalHoa = inputs.hoa * 12 * inputs.years;
+  // Calculate actual term in years for total cost calculations
+  const actualTermYears = hasExtraPayments && extraPaymentResults
+    ? extraPaymentResults.actualMonths / 12
+    : inputs.years;
+
+  const totalPropertyTax = annualPropertyTax * actualTermYears;
+  const totalInsurance = inputs.insurance * actualTermYears;
+  const totalHoa = inputs.hoa * 12 * actualTermYears;
 
   // Calculate custom costs (convert % to $ based on home price)
   const customCostsMonthly = useMemo(() => {
@@ -439,10 +484,13 @@ export function MortgageCalculator() {
   }, [inputs.customCosts, inputs.homePrice]);
 
   const totalCustomCostsMonthly = customCostsMonthly.reduce((sum, c) => sum + c.monthlyDollars, 0);
-  const totalCustomCosts = totalCustomCostsMonthly * 12 * inputs.years;
+  const totalCustomCosts = totalCustomCostsMonthly * 12 * actualTermYears;
   const totalMonthlyWithExtras = results.totalMonthly + totalCustomCostsMonthly;
+  const loanTotalPayment = hasExtraPayments && extraPaymentResults
+    ? extraPaymentResults.actualTotalPayment
+    : loanDetails.totalPayment;
   const totalCostOfOwnership =
-    loanDetails.totalPayment + totalPropertyTax + totalInsurance + totalHoa + totalCustomCosts + downPaymentDollars;
+    loanTotalPayment + totalPropertyTax + totalInsurance + totalHoa + totalCustomCosts + downPaymentDollars;
 
   const hasHoa = inputs.hoa > 0;
   const hasCustomCosts = inputs.customCosts.length > 0;
@@ -642,6 +690,86 @@ export function MortgageCalculator() {
             </button>
           </div>
         </div>
+
+        {/* Extra Payments */}
+        <div className="pt-3 border-t border-sand">
+          <label className="block text-xs font-medium text-slate mb-2 tracking-wide uppercase">
+            Extra Payments
+          </label>
+          <div className="grid grid-cols-2 gap-1.5 mb-2">
+            {[
+              { id: "none" as ExtraPaymentType, label: "None" },
+              { id: "extra_monthly" as ExtraPaymentType, label: "Monthly" },
+              { id: "extra_yearly" as ExtraPaymentType, label: "Yearly" },
+              { id: "biweekly" as ExtraPaymentType, label: "Biweekly" },
+            ].map((option) => (
+              <button
+                key={option.id}
+                onClick={() =>
+                  setInputs((prev) => ({ ...prev, extraPaymentType: option.id }))
+                }
+                className={`
+                  py-2 px-1.5 rounded-lg text-xs font-medium transition-all duration-200
+                  ${
+                    inputs.extraPaymentType === option.id
+                      ? "bg-charcoal text-ivory"
+                      : "bg-cream text-slate hover:text-charcoal border border-sand"
+                  }
+                `}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          {inputs.extraPaymentType === "extra_monthly" && (
+            <div className="animate-fade-in">
+              <InputField
+                label="Extra per Month"
+                value={inputs.extraMonthly}
+                onChange={(extraMonthly) =>
+                  setInputs((prev) => ({ ...prev, extraMonthly }))
+                }
+                prefix="$"
+              />
+            </div>
+          )}
+
+          {inputs.extraPaymentType === "extra_yearly" && (
+            <div className="animate-fade-in space-y-2">
+              <InputField
+                label="Extra per Year"
+                value={inputs.extraYearlyAmount}
+                onChange={(extraYearlyAmount) =>
+                  setInputs((prev) => ({ ...prev, extraYearlyAmount }))
+                }
+                prefix="$"
+              />
+              <div>
+                <label className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
+                  Apply in Month
+                </label>
+                <select
+                  value={inputs.extraYearlyMonth}
+                  onChange={(e) =>
+                    setInputs((prev) => ({ ...prev, extraYearlyMonth: parseInt(e.target.value) }))
+                  }
+                  className="w-full bg-cream border-2 border-sand rounded-xl py-3 px-3 text-base font-medium text-charcoal focus:border-terracotta focus:bg-ivory transition-all duration-200"
+                >
+                  {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map((month, idx) => (
+                    <option key={month} value={idx + 1}>{month}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {inputs.extraPaymentType === "biweekly" && (
+            <p className="text-xs text-slate mt-1">
+              26 biweekly payments = 13 monthly payments/year
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Column 2: Results */}
@@ -703,6 +831,31 @@ export function MortgageCalculator() {
           ))}
         </div>
 
+        {/* Extra Payment Savings */}
+        {hasExtraPayments && extraPaymentResults && extraPaymentResults.monthsSaved > 0 && (
+          <div className="bg-sage/20 rounded-xl p-4 mb-4 border border-sage/30">
+            <h3 className="text-sm font-semibold text-charcoal mb-2">Early Payoff Savings</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-slate uppercase tracking-wide">Time Saved</p>
+                <p className="text-base font-serif text-charcoal">
+                  {Math.floor(extraPaymentResults.monthsSaved / 12) > 0 && (
+                    <>{Math.floor(extraPaymentResults.monthsSaved / 12)} yr{Math.floor(extraPaymentResults.monthsSaved / 12) !== 1 ? "s" : ""} </>
+                  )}
+                  {extraPaymentResults.monthsSaved % 12} mo
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate uppercase tracking-wide">Interest Saved</p>
+                <p className="text-base font-serif text-charcoal">{formatCurrency(extraPaymentResults.interestSaved)}</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate mt-2">
+              Payoff: {Math.floor(extraPaymentResults.actualMonths / 12)} yr {extraPaymentResults.actualMonths % 12} mo (vs {inputs.years} yr)
+            </p>
+          </div>
+        )}
+
         {/* Summary */}
         <div className="bg-cream rounded-xl p-4">
           <h3 className="text-sm font-semibold text-charcoal mb-2">Summary</h3>
@@ -716,8 +869,22 @@ export function MortgageCalculator() {
               <span className="text-charcoal">{formatCurrency(downPaymentDollars)} ({downPaymentPercent.toFixed(0)}%)</span>
             </div>
             <div className="flex justify-between">
+              <span className="text-slate">Term</span>
+              <span className="text-charcoal">
+                {hasExtraPayments && extraPaymentResults ? (
+                  <>
+                    {Math.floor(extraPaymentResults.actualMonths / 12)} yr {extraPaymentResults.actualMonths % 12} mo
+                  </>
+                ) : (
+                  <>{inputs.years} yrs</>
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-slate">Total Interest</span>
-              <span className="text-charcoal">{formatCurrency(loanDetails.totalInterest)}</span>
+              <span className="text-charcoal">
+                {formatCurrency(hasExtraPayments && extraPaymentResults ? extraPaymentResults.actualTotalInterest : loanDetails.totalInterest)}
+              </span>
             </div>
             <div className="flex justify-between pt-2 border-t border-sand">
               <span className="font-semibold text-charcoal">Total Cost</span>
