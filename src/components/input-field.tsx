@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useId } from "react";
+import { useState, useLayoutEffect, useRef, useId } from "react";
 import { formatWithCommas, parseFormattedNumber } from "../lib/format";
 
-interface InputFieldProps {
+export interface InputFieldProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
@@ -38,15 +38,20 @@ export function InputField({
   };
 
   const [displayValue, setDisplayValue] = useState(() => formatValue(value));
+  const [prevValue, setPrevValue] = useState(value);
 
-  useEffect(() => {
-    const formatted = formatValue(value);
+  // Sync display value when prop changes externally (React recommended pattern)
+  // This runs during render, avoiding useEffect for derived state
+  if (value !== prevValue) {
+    setPrevValue(value);
+    // Only update display if it doesn't already represent the new value
     if (parseFormattedNumber(displayValue) !== value) {
-      setDisplayValue(formatted);
+      setDisplayValue(formatValue(value));
     }
-  }, [value]);
+  }
 
-  useEffect(() => {
+  // Restore cursor position after display value changes
+  useLayoutEffect(() => {
     const input = inputRef.current;
     if (input && document.activeElement === input) {
       input.setSelectionRange(cursorRef.current, cursorRef.current);
