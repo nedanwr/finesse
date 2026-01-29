@@ -1,4 +1,4 @@
-import ExcelJS from "exceljs";
+import type { Workbook } from "exceljs";
 import type { AmortizationRow, InvestmentGrowthRow } from "./calculations";
 import { formatCurrency } from "./format";
 
@@ -67,14 +67,7 @@ const COLORS = {
   sage: "FF7a9a7a",
 };
 
-function createWorkbook() {
-  const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Finesse Calculator";
-  workbook.created = new Date();
-  return workbook;
-}
-
-async function downloadWorkbook(workbook: ExcelJS.Workbook, filename: string) {
+async function downloadWorkbook(workbook: Workbook, filename: string) {
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -134,7 +127,10 @@ export function exportLoanCSV(data: LoanExportData) {
 }
 
 export async function exportLoanExcel(data: LoanExportData) {
-  const workbook = createWorkbook();
+  const ExcelJS = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Finesse Calculator";
+  workbook.created = new Date();
 
   // Summary Sheet
   const summary = workbook.addWorksheet("Summary", {
@@ -423,7 +419,10 @@ export function exportMortgageCSV(data: MortgageExportData) {
 }
 
 export async function exportMortgageExcel(data: MortgageExportData) {
-  const workbook = createWorkbook();
+  const ExcelJS = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Finesse Calculator";
+  workbook.created = new Date();
 
   const summary = workbook.addWorksheet("Summary", {
     properties: { tabColor: { argb: COLORS.terracotta.slice(2) } },
@@ -682,7 +681,10 @@ export function exportInvestmentCSV(data: InvestmentExportData) {
 }
 
 export async function exportInvestmentExcel(data: InvestmentExportData) {
-  const workbook = createWorkbook();
+  const ExcelJS = await import("exceljs");
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "Finesse Calculator";
+  workbook.created = new Date();
 
   const summary = workbook.addWorksheet("Summary", {
     properties: { tabColor: { argb: COLORS.terracotta.slice(2) } },
