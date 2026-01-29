@@ -374,10 +374,11 @@ export function LoanCalculator() {
                   prefix="$"
                 />
                 <div>
-                  <label className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
+                  <label htmlFor="loan-extra-yearly-month" className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
                     Apply in Month
                   </label>
                   <select
+                    id="loan-extra-yearly-month"
                     value={inputs.extraYearlyMonth}
                     onChange={(e) =>
                       setInputs((prev) => ({ ...prev, extraYearlyMonth: parseInt(e.target.value) }))
