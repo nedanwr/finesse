@@ -652,8 +652,8 @@ export function MortgageCostChart({
         </ResponsiveContainer>
       </div>
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-2">
-        {data.map((item) => (
-          <div key={item.name} className="flex items-center gap-1.5">
+        {data.map((item, index) => (
+          <div key={`${item.name}-${index}`} className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
             <span className="text-xs text-slate">
               {item.name} ({((item.value / total) * 100).toFixed(0)}%)
