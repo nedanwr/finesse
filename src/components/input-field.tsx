@@ -105,12 +105,12 @@ export function InputField({
 
   return (
     <div className="group">
-      <label className="block text-sm font-medium text-slate mb-2 tracking-wide uppercase">
+      <label className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
         {label}
       </label>
       <div className="relative">
         {prefix && (
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate text-lg">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate">
             {prefix}
           </span>
         )}
@@ -122,16 +122,16 @@ export function InputField({
           onChange={handleChange}
           onBlur={handleBlur}
           className={`
-            w-full bg-cream border-2 border-sand rounded-xl py-4 text-lg font-medium
+            w-full bg-cream border-2 border-sand rounded-xl py-3 text-base font-medium
             text-charcoal placeholder:text-stone
             focus:border-terracotta focus:bg-ivory
             transition-all duration-200
-            ${prefix ? "pl-10" : "pl-4"}
-            ${suffix ? "pr-14" : "pr-4"}
+            ${prefix ? "pl-8" : "pl-3"}
+            ${suffix ? "pr-12" : "pr-3"}
           `}
         />
         {suffix && (
-          <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate text-lg">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate text-sm">
             {suffix}
           </span>
         )}
