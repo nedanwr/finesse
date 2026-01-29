@@ -185,7 +185,3 @@ export function exportInvestmentCSV(data: InvestmentExportData) {
 
   downloadCSV(lines.join("\n"), `investment-projection-${formatDate()}.csv`);
 }
-
-export function printPage() {
-  window.print();
-}
