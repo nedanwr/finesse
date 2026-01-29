@@ -1,8 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { InputField } from "../input-field";
 import { formatCurrency } from "../../lib/format";
 import { calculateInvestment, generateInvestmentSchedule } from "../../lib/calculations";
 import { InvestmentGrowthChart, InvestmentBreakdownChart } from "../charts";
+import { ExportControls } from "../export-controls";
+import { exportInvestmentCSV } from "../../lib/export";
+import { printInvestment } from "../../lib/print";
 
 interface InvestmentInputs {
   initial: number;
@@ -56,6 +59,33 @@ export function InvestmentCalculator() {
   const investmentSchedule = useMemo(() => {
     return generateInvestmentSchedule(inputs.initial, inputs.monthly, inputs.rate, inputs.years);
   }, [inputs.initial, inputs.monthly, inputs.rate, inputs.years]);
+
+  const handleExportCSV = useCallback(() => {
+    exportInvestmentCSV({
+      initial: inputs.initial,
+      monthly: inputs.monthly,
+      rate: inputs.rate,
+      years: inputs.years,
+      futureValue: results.futureValue,
+      totalContributions: results.totalContributions,
+      totalInterest: results.totalInterest,
+      schedule: investmentSchedule,
+    });
+  }, [inputs, results, investmentSchedule]);
+
+  const handlePrint = useCallback(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    printInvestment({
+      initial: inputs.initial,
+      monthly: inputs.monthly,
+      rate: inputs.rate,
+      years: inputs.years,
+      futureValue: results.futureValue,
+      totalContributions: results.totalContributions,
+      totalInterest: results.totalInterest,
+      schedule: investmentSchedule,
+    }, isDark);
+  }, [inputs, results, investmentSchedule]);
 
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">
@@ -179,7 +209,10 @@ export function InvestmentCalculator() {
 
       {/* Column 3: Visualizations */}
       <div className="xl:border-l xl:border-sand xl:pl-6 lg:col-span-2 xl:col-span-1 lg:overflow-y-auto lg:pb-4">
-        <h2 className="text-base font-semibold text-charcoal mb-4">Visualizations</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-charcoal">Visualizations</h2>
+          <ExportControls onExportCSV={handleExportCSV} onPrint={handlePrint} />
+        </div>
 
         {investmentSchedule.length > 0 && (
           <div className="space-y-4">
