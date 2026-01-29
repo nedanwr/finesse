@@ -510,7 +510,7 @@ export function calculateLoanWithExtraPayments(
       extra = extraPayment.extraMonthly;
     } else if (extraPayment.type === "biweekly") {
       extra = biweeklyExtra;
-    } else if (extraPayment.type === "extra_yearly" && months % 12 === extraPayment.extraYearlyMonth) {
+    } else if (extraPayment.type === "extra_yearly" && months % 12 === extraPayment.extraYearlyMonth % 12) {
       extra = extraPayment.extraYearlyAmount;
     }
 
@@ -582,7 +582,7 @@ export function generateAmortizationScheduleWithExtra(
         extra = extraPayment.extraMonthly;
       } else if (extraPayment.type === "biweekly") {
         extra = biweeklyExtra;
-      } else if (extraPayment.type === "extra_yearly" && month % 12 === extraPayment.extraYearlyMonth) {
+      } else if (extraPayment.type === "extra_yearly" && month % 12 === extraPayment.extraYearlyMonth % 12) {
         extra = extraPayment.extraYearlyAmount;
       }
 
