@@ -283,6 +283,8 @@ function CustomCostInput({ cost, homePrice, onChange, onRemove }: CustomCostInpu
         />
         <button
           onClick={onRemove}
+          aria-label={cost.name ? `Remove ${cost.name}` : "Remove cost"}
+          title={cost.name ? `Remove ${cost.name}` : "Remove cost"}
           className="p-1 text-slate hover:text-terracotta transition-colors"
         >
           <X size={14} />
