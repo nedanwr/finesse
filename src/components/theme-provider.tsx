@@ -10,10 +10,15 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme
+  isDark: boolean
   setTheme: (theme: Theme) => void
 }
 
 const ThemeProviderContext = createContext<ThemeProviderState | null>(null)
+
+function getSystemIsDark() {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+}
 
 export function ThemeProvider({
   children,
@@ -24,13 +29,17 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   )
+  const [isDark, setIsDark] = useState(() =>
+    theme === "system" ? getSystemIsDark() : theme === "dark"
+  )
 
   useEffect(() => {
     const root = window.document.documentElement
 
-    const applyTheme = (isDark: boolean) => {
+    const applyTheme = (dark: boolean) => {
       root.classList.remove("light", "dark")
-      root.classList.add(isDark ? "dark" : "light")
+      root.classList.add(dark ? "dark" : "light")
+      setIsDark(dark)
     }
 
     if (theme === "system") {
@@ -56,6 +65,7 @@ export function ThemeProvider({
 
   const value = {
     theme,
+    isDark,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme)
       setTheme(theme)
