@@ -145,7 +145,7 @@ export function InvestmentCalculator() {
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-slate uppercase tracking-wide">
+              <label id="contribution-label" className="text-xs font-medium text-slate uppercase tracking-wide">
                 Contribution
               </label>
               <div className="flex bg-sand rounded-lg p-0.5">
@@ -176,6 +176,8 @@ export function InvestmentCalculator() {
               value={inputs.contribution}
               onChange={(contribution) => setInputs((prev) => ({ ...prev, contribution }))}
               prefix="$"
+              id="contribution-input"
+              aria-labelledby="contribution-label"
             />
           </div>
         </div>
