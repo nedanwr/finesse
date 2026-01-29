@@ -772,10 +772,11 @@ export function MortgageCalculator() {
                 prefix="$"
               />
               <div>
-                <label className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
+                <label htmlFor="mortgage-extra-yearly-month" className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
                   Apply in Month
                 </label>
                 <select
+                  id="mortgage-extra-yearly-month"
                   value={inputs.extraYearlyMonth}
                   onChange={(e) =>
                     setInputs((prev) => ({ ...prev, extraYearlyMonth: parseInt(e.target.value) }))
