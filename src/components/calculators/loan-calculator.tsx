@@ -127,10 +127,13 @@ export function LoanCalculator() {
     const effectivePrincipal = hasGracePeriod ? standardResults.principalAfterGrace : inputs.principal;
     const monthlyRate = inputs.rate / 100 / 12;
     const monthlyPayment = standardResults.monthlyPayment;
-    const firstMonthInterest = effectivePrincipal * monthlyRate;
-    const firstMonthPrincipal = monthlyPayment - firstMonthInterest;
+    const rawFirstMonthInterest = effectivePrincipal * monthlyRate;
 
-    // Guard against division by zero when monthlyPayment is 0
+    // Cap interest at payment amount and principal at zero to handle edge cases
+    const firstMonthInterest = Math.min(rawFirstMonthInterest, monthlyPayment);
+    const firstMonthPrincipal = Math.max(monthlyPayment - firstMonthInterest, 0);
+
+    // Guard against division by zero when monthlyPayment is <= 0
     const interestPercent = monthlyPayment > 0 ? (firstMonthInterest / monthlyPayment) * 100 : 0;
     const principalPercent = monthlyPayment > 0 ? (firstMonthPrincipal / monthlyPayment) * 100 : 0;
 
