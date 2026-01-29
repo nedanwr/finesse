@@ -150,12 +150,22 @@ function printViaIframe(title: string, content: string, isDark: boolean) {
 
   // Set onload handler BEFORE writing to iframe to avoid missing synchronous load events
   iframe.onload = () => {
+    // Small delay to ensure fonts and styles are ready
     setTimeout(() => {
-      iframe.contentWindow?.print();
-      // Clean up after print dialog closes
-      setTimeout(() => {
+      const iframeWindow = iframe.contentWindow;
+      if (!iframeWindow) {
         document.body.removeChild(iframe);
-      }, 1000);
+        return;
+      }
+
+      // Clean up after print dialog closes (works even if user cancels)
+      const cleanup = () => {
+        iframeWindow.removeEventListener("afterprint", cleanup);
+        document.body.removeChild(iframe);
+      };
+      iframeWindow.addEventListener("afterprint", cleanup);
+
+      iframeWindow.print();
     }, 300);
   };
 
