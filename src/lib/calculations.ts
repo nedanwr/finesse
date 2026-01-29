@@ -402,3 +402,256 @@ export function calculateInvestment(
 
   return { futureValue, totalContributions, totalInterest };
 }
+
+// Extra payment types
+export type ExtraPaymentType = "none" | "extra_monthly" | "extra_yearly" | "biweekly";
+
+export interface ExtraPaymentConfig {
+  type: ExtraPaymentType;
+  extraMonthly: number;      // Extra $ per month
+  extraYearlyAmount: number; // Extra $ once per year
+  extraYearlyMonth: number;  // Which month (1-12) to apply extra yearly payment
+}
+
+export interface ExtraPaymentResult {
+  // Standard loan info
+  standardMonthlyPayment: number;
+  standardTotalPayment: number;
+  standardTotalInterest: number;
+  standardMonths: number;
+  // With extra payments
+  actualMonths: number;
+  actualTotalPayment: number;
+  actualTotalInterest: number;
+  // Savings
+  monthsSaved: number;
+  interestSaved: number;
+  // Effective monthly payment (for display)
+  effectiveMonthlyPayment: number;
+}
+
+export function calculateLoanWithExtraPayments(
+  principal: number,
+  annualRate: number,
+  years: number,
+  extraPayment: ExtraPaymentConfig
+): ExtraPaymentResult {
+  if (principal <= 0 || years <= 0) {
+    return {
+      standardMonthlyPayment: 0,
+      standardTotalPayment: 0,
+      standardTotalInterest: 0,
+      standardMonths: 0,
+      actualMonths: 0,
+      actualTotalPayment: 0,
+      actualTotalInterest: 0,
+      monthsSaved: 0,
+      interestSaved: 0,
+      effectiveMonthlyPayment: 0,
+    };
+  }
+
+  const monthlyRate = annualRate / 100 / 12;
+  const standardNumPayments = years * 12;
+
+  // Calculate standard monthly payment
+  let standardMonthlyPayment: number;
+  if (monthlyRate === 0) {
+    standardMonthlyPayment = principal / standardNumPayments;
+  } else {
+    standardMonthlyPayment =
+      (principal * (monthlyRate * Math.pow(1 + monthlyRate, standardNumPayments))) /
+      (Math.pow(1 + monthlyRate, standardNumPayments) - 1);
+  }
+
+  const standardTotalPayment = standardMonthlyPayment * standardNumPayments;
+  const standardTotalInterest = standardTotalPayment - principal;
+
+  // If no extra payments, return standard results
+  if (extraPayment.type === "none") {
+    return {
+      standardMonthlyPayment,
+      standardTotalPayment,
+      standardTotalInterest,
+      standardMonths: standardNumPayments,
+      actualMonths: standardNumPayments,
+      actualTotalPayment: standardTotalPayment,
+      actualTotalInterest: standardTotalInterest,
+      monthsSaved: 0,
+      interestSaved: 0,
+      effectiveMonthlyPayment: standardMonthlyPayment,
+    };
+  }
+
+  // Simulate loan with extra payments
+  let balance = principal;
+  let totalPaid = 0;
+  let totalInterest = 0;
+  let months = 0;
+  const maxMonths = standardNumPayments * 2; // Safety limit
+
+  // For biweekly: 26 payments/year = effectively 13 monthly payments
+  // Extra monthly amount for biweekly
+  const biweeklyExtra = extraPayment.type === "biweekly" ? standardMonthlyPayment / 12 : 0;
+
+  while (balance > 0.01 && months < maxMonths) {
+    months++;
+
+    // Calculate interest for this month
+    const interest = balance * monthlyRate;
+    totalInterest += interest;
+
+    // Base payment
+    let payment = Math.min(standardMonthlyPayment, balance + interest);
+
+    // Add extra payments based on type
+    let extra = 0;
+    if (extraPayment.type === "extra_monthly") {
+      extra = extraPayment.extraMonthly;
+    } else if (extraPayment.type === "biweekly") {
+      extra = biweeklyExtra;
+    } else if (extraPayment.type === "extra_yearly" && months % 12 === extraPayment.extraYearlyMonth) {
+      extra = extraPayment.extraYearlyAmount;
+    }
+
+    // Apply payment to principal
+    const principalPayment = Math.min(payment - interest + extra, balance);
+    balance = Math.max(0, balance - principalPayment);
+    totalPaid += payment + Math.min(extra, principalPayment + interest);
+  }
+
+  const monthsSaved = standardNumPayments - months;
+  const interestSaved = standardTotalInterest - totalInterest;
+
+  // Calculate effective monthly payment (average)
+  const effectiveMonthlyPayment = totalPaid / months;
+
+  return {
+    standardMonthlyPayment,
+    standardTotalPayment,
+    standardTotalInterest,
+    standardMonths: standardNumPayments,
+    actualMonths: months,
+    actualTotalPayment: totalPaid,
+    actualTotalInterest: totalInterest,
+    monthsSaved: Math.max(0, monthsSaved),
+    interestSaved: Math.max(0, interestSaved),
+    effectiveMonthlyPayment,
+  };
+}
+
+export function generateAmortizationScheduleWithExtra(
+  principal: number,
+  annualRate: number,
+  years: number,
+  extraPayment: ExtraPaymentConfig,
+  periodType: "monthly" | "yearly" = "yearly"
+): AmortizationRow[] {
+  if (principal <= 0 || years <= 0) return [];
+
+  const monthlyRate = annualRate / 100 / 12;
+  const standardNumPayments = years * 12;
+
+  // Calculate standard monthly payment
+  let standardMonthlyPayment: number;
+  if (monthlyRate === 0) {
+    standardMonthlyPayment = principal / standardNumPayments;
+  } else {
+    standardMonthlyPayment =
+      (principal * (monthlyRate * Math.pow(1 + monthlyRate, standardNumPayments))) /
+      (Math.pow(1 + monthlyRate, standardNumPayments) - 1);
+  }
+
+  // For biweekly: effectively 13 monthly payments per year
+  const biweeklyExtra = extraPayment.type === "biweekly" ? standardMonthlyPayment / 12 : 0;
+
+  const schedule: AmortizationRow[] = [];
+  let balance = principal;
+  let totalPrincipal = 0;
+  let totalInterest = 0;
+  let month = 0;
+
+  if (periodType === "monthly") {
+    while (balance > 0.01 && month < standardNumPayments * 2) {
+      month++;
+      const interest = balance * monthlyRate;
+
+      // Calculate extra for this month
+      let extra = 0;
+      if (extraPayment.type === "extra_monthly") {
+        extra = extraPayment.extraMonthly;
+      } else if (extraPayment.type === "biweekly") {
+        extra = biweeklyExtra;
+      } else if (extraPayment.type === "extra_yearly" && month % 12 === extraPayment.extraYearlyMonth) {
+        extra = extraPayment.extraYearlyAmount;
+      }
+
+      const basePrincipal = standardMonthlyPayment - interest;
+      const totalPrincipalPayment = Math.min(basePrincipal + extra, balance);
+      const actualPayment = interest + totalPrincipalPayment;
+
+      balance = Math.max(0, balance - totalPrincipalPayment);
+      totalPrincipal += totalPrincipalPayment;
+      totalInterest += interest;
+
+      schedule.push({
+        period: month,
+        payment: actualPayment,
+        principal: totalPrincipalPayment,
+        interest,
+        balance,
+        totalPrincipal,
+        totalInterest,
+      });
+    }
+  } else {
+    // Yearly summary
+    let year = 0;
+    while (balance > 0.01 && year < years * 2) {
+      year++;
+      let yearlyPrincipal = 0;
+      let yearlyInterest = 0;
+      let yearlyPayment = 0;
+
+      for (let m = 1; m <= 12 && balance > 0.01; m++) {
+        month++;
+        const interest = balance * monthlyRate;
+
+        // Calculate extra for this month
+        let extra = 0;
+        if (extraPayment.type === "extra_monthly") {
+          extra = extraPayment.extraMonthly;
+        } else if (extraPayment.type === "biweekly") {
+          extra = biweeklyExtra;
+        } else if (extraPayment.type === "extra_yearly" && m === extraPayment.extraYearlyMonth) {
+          extra = extraPayment.extraYearlyAmount;
+        }
+
+        const basePrincipal = standardMonthlyPayment - interest;
+        const totalPrincipalPayment = Math.min(basePrincipal + extra, balance);
+        const actualPayment = interest + totalPrincipalPayment;
+
+        balance = Math.max(0, balance - totalPrincipalPayment);
+        yearlyPrincipal += totalPrincipalPayment;
+        yearlyInterest += interest;
+        yearlyPayment += actualPayment;
+        totalPrincipal += totalPrincipalPayment;
+        totalInterest += interest;
+      }
+
+      if (yearlyPayment > 0) {
+        schedule.push({
+          period: year,
+          payment: yearlyPayment,
+          principal: yearlyPrincipal,
+          interest: yearlyInterest,
+          balance,
+          totalPrincipal,
+          totalInterest,
+        });
+      }
+    }
+  }
+
+  return schedule;
+}
