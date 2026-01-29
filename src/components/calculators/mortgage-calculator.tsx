@@ -746,7 +746,7 @@ export function MortgageCalculator() {
                   id="mortgage-extra-yearly-month"
                   value={inputs.extraYearlyMonth}
                   onChange={(e) =>
-                    setInputs((prev) => ({ ...prev, extraYearlyMonth: parseInt(e.target.value) }))
+                    setInputs((prev) => ({ ...prev, extraYearlyMonth: parseInt(e.target.value, 10) || 1 }))
                   }
                   className="w-full bg-cream border-2 border-sand rounded-xl py-3 px-3 text-base font-medium text-charcoal focus:border-terracotta focus:bg-ivory transition-all duration-200"
                 >
