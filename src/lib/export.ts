@@ -20,10 +20,24 @@ function downloadCSV(content: string, filename: string) {
 
 function escapeCSV(value: string | number): string {
   const str = String(value);
-  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-    return `"${str.replace(/"/g, '""')}"`;
+
+  // Protect against CSV formula injection for string inputs
+  // Prefix with single quote if starts with dangerous characters
+  const dangerousChars = ["=", "+", "-", "@"];
+  const needsFormulaProtection =
+    typeof value === "string" &&
+    dangerousChars.some((char) => str.trimStart().startsWith(char));
+
+  let escaped = str;
+  if (needsFormulaProtection) {
+    escaped = "'" + str;
   }
-  return str;
+
+  // Quote values containing delimiters, quotes, or newlines
+  if (escaped.includes(",") || escaped.includes('"') || escaped.includes("\n")) {
+    return `"${escaped.replace(/"/g, '""')}"`;
+  }
+  return escaped;
 }
 
 function formatDate(): string {
