@@ -6,7 +6,7 @@ import { calculateMortgage, calculateLoanPayment, generateAmortizationSchedule }
 import { AmortizationTable } from "../amortization-table";
 import { BalanceChart, MortgageCostChart } from "../charts";
 import { ExportControls } from "../export-controls";
-import { exportMortgageCSV } from "../../lib/export";
+import { exportMortgageCSV, exportMortgageExcel } from "../../lib/export";
 import { printMortgage } from "../../lib/print";
 
 type InputMode = "dollar" | "percent";
@@ -491,6 +491,25 @@ export function MortgageCalculator() {
     });
   }, [inputs, results, downPaymentDollars, totalCustomCostsMonthly, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
 
+  const handleExportExcel = useCallback(() => {
+    exportMortgageExcel({
+      homePrice: inputs.homePrice,
+      downPayment: downPaymentDollars,
+      loanAmount: results.loanAmount,
+      rate: inputs.rate,
+      years: inputs.years,
+      monthlyPI: results.monthlyPrincipalInterest,
+      monthlyTax: results.monthlyPropertyTax,
+      monthlyInsurance: results.monthlyInsurance,
+      monthlyHOA: results.monthlyHoa,
+      monthlyOther: totalCustomCostsMonthly,
+      totalMonthly: totalMonthlyWithExtras,
+      totalCost: totalCostOfOwnership,
+      totalInterest: loanDetails.totalInterest,
+      schedule: amortizationSchedule,
+    });
+  }, [inputs, results, downPaymentDollars, totalCustomCostsMonthly, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
+
   const handlePrint = useCallback(() => {
     const isDark = document.documentElement.classList.contains("dark");
     printMortgage({
@@ -712,7 +731,7 @@ export function MortgageCalculator() {
       <div className="xl:border-l xl:border-sand xl:pl-6 lg:col-span-2 xl:col-span-1 lg:overflow-y-auto lg:pb-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-base font-semibold text-charcoal">Visualizations</h2>
-          <ExportControls onExportCSV={handleExportCSV} onPrint={handlePrint} />
+          <ExportControls onExportCSV={handleExportCSV} onExportExcel={handleExportExcel} onPrint={handlePrint} />
         </div>
 
         {amortizationSchedule.length > 0 && (
