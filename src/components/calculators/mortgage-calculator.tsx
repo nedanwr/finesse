@@ -680,7 +680,15 @@ export function MortgageCalculator() {
               hoa={totalHoa}
               other={totalCustomCosts}
             />
-            <BalanceChart schedule={amortizationSchedule} />
+            <BalanceChart
+              schedule={amortizationSchedule}
+              monthlyCosts={{
+                tax: results.monthlyPropertyTax,
+                insurance: results.monthlyInsurance,
+                hoa: results.monthlyHoa,
+                other: totalCustomCostsMonthly,
+              }}
+            />
             <AmortizationTable schedule={amortizationSchedule} />
           </div>
         )}
