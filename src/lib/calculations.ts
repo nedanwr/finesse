@@ -1,5 +1,140 @@
 export type GracePeriodType = "none" | "no_payment" | "interest_only";
 
+export interface AmortizationRow {
+  period: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  balance: number;
+  totalPrincipal: number;
+  totalInterest: number;
+}
+
+export function generateAmortizationSchedule(
+  principal: number,
+  annualRate: number,
+  years: number,
+  periodType: "monthly" | "yearly" = "yearly"
+): AmortizationRow[] {
+  if (principal <= 0 || years <= 0) return [];
+
+  const monthlyRate = annualRate / 100 / 12;
+  const numPayments = years * 12;
+
+  // Calculate monthly payment
+  let monthlyPayment: number;
+  if (monthlyRate === 0) {
+    monthlyPayment = principal / numPayments;
+  } else {
+    monthlyPayment =
+      (principal * (monthlyRate * Math.pow(1 + monthlyRate, numPayments))) /
+      (Math.pow(1 + monthlyRate, numPayments) - 1);
+  }
+
+  const schedule: AmortizationRow[] = [];
+  let balance = principal;
+  let totalPrincipal = 0;
+  let totalInterest = 0;
+
+  if (periodType === "monthly") {
+    for (let month = 1; month <= numPayments; month++) {
+      const interest = balance * monthlyRate;
+      const principalPaid = monthlyPayment - interest;
+      balance = Math.max(0, balance - principalPaid);
+      totalPrincipal += principalPaid;
+      totalInterest += interest;
+
+      schedule.push({
+        period: month,
+        payment: monthlyPayment,
+        principal: principalPaid,
+        interest,
+        balance,
+        totalPrincipal,
+        totalInterest,
+      });
+    }
+  } else {
+    // Yearly summary
+    for (let year = 1; year <= years; year++) {
+      let yearlyPrincipal = 0;
+      let yearlyInterest = 0;
+      let yearlyPayment = 0;
+
+      for (let month = 1; month <= 12; month++) {
+        const interest = balance * monthlyRate;
+        const principalPaid = monthlyPayment - interest;
+        balance = Math.max(0, balance - principalPaid);
+        yearlyPrincipal += principalPaid;
+        yearlyInterest += interest;
+        yearlyPayment += monthlyPayment;
+        totalPrincipal += principalPaid;
+        totalInterest += interest;
+      }
+
+      schedule.push({
+        period: year,
+        payment: yearlyPayment,
+        principal: yearlyPrincipal,
+        interest: yearlyInterest,
+        balance,
+        totalPrincipal,
+        totalInterest,
+      });
+    }
+  }
+
+  return schedule;
+}
+
+export interface InvestmentGrowthRow {
+  year: number;
+  contributions: number;
+  interest: number;
+  balance: number;
+}
+
+export function generateInvestmentSchedule(
+  initial: number,
+  monthly: number,
+  annualRate: number,
+  years: number
+): InvestmentGrowthRow[] {
+  const schedule: InvestmentGrowthRow[] = [];
+  const monthlyRate = annualRate / 100 / 12;
+
+  let balance = initial;
+  let totalContributions = initial;
+
+  // Add year 0 (starting point)
+  schedule.push({
+    year: 0,
+    contributions: initial,
+    interest: 0,
+    balance: initial,
+  });
+
+  for (let year = 1; year <= years; year++) {
+    let yearlyInterest = 0;
+
+    for (let month = 1; month <= 12; month++) {
+      const interest = balance * monthlyRate;
+      balance += interest + monthly;
+      yearlyInterest += interest;
+      totalContributions += monthly;
+    }
+
+    schedule.push({
+      year,
+      contributions: totalContributions,
+      interest: balance - totalContributions,
+      balance,
+    });
+  }
+
+  return schedule;
+}
+
 export interface LoanResult {
   monthlyPayment: number;
   totalPayment: number;
@@ -12,10 +147,25 @@ export interface LoanWithGraceResult extends LoanResult {
   graceInterest: number;
 }
 
+export interface BalloonLoanResult {
+  monthlyPayment: number;
+  balloonPayment: number;
+  totalPayment: number;
+  totalInterest: number;
+}
+
+export interface BulletLoanResult {
+  monthlyPayment: number;
+  finalPayment: number;
+  totalPayment: number;
+  totalInterest: number;
+}
+
 export interface MortgageResult {
   monthlyPrincipalInterest: number;
   monthlyPropertyTax: number;
   monthlyInsurance: number;
+  monthlyHoa: number;
   totalMonthly: number;
   loanAmount: number;
   totalCost: number;
@@ -133,26 +283,97 @@ export function calculateLoanWithGracePeriod(
   };
 }
 
+export function calculateBalloonLoan(
+  principal: number,
+  annualRate: number,
+  years: number
+): BalloonLoanResult {
+  if (principal <= 0 || years <= 0) {
+    return {
+      monthlyPayment: 0,
+      balloonPayment: 0,
+      totalPayment: 0,
+      totalInterest: 0,
+    };
+  }
+
+  const monthlyRate = annualRate / 100 / 12;
+  const numMonths = years * 12;
+
+  // Interest-only payments during the term
+  const monthlyPayment = principal * monthlyRate;
+  const totalInterestPayments = monthlyPayment * numMonths;
+
+  // Principal paid at maturity
+  const balloonPayment = principal;
+
+  const totalPayment = totalInterestPayments + balloonPayment;
+  const totalInterest = totalInterestPayments;
+
+  return {
+    monthlyPayment,
+    balloonPayment,
+    totalPayment,
+    totalInterest,
+  };
+}
+
+export function calculateBulletLoan(
+  principal: number,
+  annualRate: number,
+  years: number
+): BulletLoanResult {
+  if (principal <= 0 || years <= 0) {
+    return {
+      monthlyPayment: 0,
+      finalPayment: 0,
+      totalPayment: 0,
+      totalInterest: 0,
+    };
+  }
+
+  const monthlyRate = annualRate / 100 / 12;
+  const numMonths = years * 12;
+
+  // No monthly payments
+  const monthlyPayment = 0;
+
+  // Interest compounds, full amount due at maturity
+  const finalPayment = principal * Math.pow(1 + monthlyRate, numMonths);
+  const totalInterest = finalPayment - principal;
+
+  return {
+    monthlyPayment,
+    finalPayment,
+    totalPayment: finalPayment,
+    totalInterest,
+  };
+}
+
 export function calculateMortgage(
   homePrice: number,
   downPayment: number,
   annualRate: number,
   years: number,
   annualPropertyTax: number,
-  annualInsurance: number
+  annualInsurance: number,
+  monthlyHoa: number = 0
 ): MortgageResult {
   const loanAmount = homePrice - downPayment;
   const { monthlyPayment } = calculateLoanPayment(loanAmount, annualRate, years);
   const monthlyPropertyTax = annualPropertyTax / 12;
   const monthlyInsurance = annualInsurance / 12;
 
+  const totalMonthly = monthlyPayment + monthlyPropertyTax + monthlyInsurance + monthlyHoa;
+
   return {
     monthlyPrincipalInterest: monthlyPayment,
     monthlyPropertyTax,
     monthlyInsurance,
-    totalMonthly: monthlyPayment + monthlyPropertyTax + monthlyInsurance,
+    monthlyHoa,
+    totalMonthly,
     loanAmount,
-    totalCost: (monthlyPayment + monthlyPropertyTax + monthlyInsurance) * years * 12,
+    totalCost: totalMonthly * years * 12,
   };
 }
 
