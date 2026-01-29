@@ -10,6 +10,8 @@ interface InputFieldProps {
   min?: number;
   max?: number;
   decimals?: number;
+  id?: string;
+  "aria-labelledby"?: string;
 }
 
 export function InputField({
@@ -21,6 +23,8 @@ export function InputField({
   min = 0,
   max,
   decimals = 0,
+  id,
+  "aria-labelledby": ariaLabelledBy,
 }: InputFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<number>(0);
@@ -121,6 +125,8 @@ export function InputField({
           value={displayValue}
           onChange={handleChange}
           onBlur={handleBlur}
+          id={id}
+          aria-labelledby={ariaLabelledBy}
           className={`
             w-full bg-cream border-2 border-sand rounded-xl py-3 text-base font-medium
             text-charcoal placeholder:text-stone
