@@ -215,8 +215,8 @@ export async function exportLoanExcel(data: LoanExportData) {
   resultsHeader.border = { bottom: { style: "thin", color: { argb: COLORS.sand.slice(2) } } };
   row++;
 
-  const principalPct = ((data.principal / data.totalPayment) * 100).toFixed(1);
-  const interestPct = ((data.totalInterest / data.totalPayment) * 100).toFixed(1);
+  const principalPct = data.totalPayment > 0 ? ((data.principal / data.totalPayment) * 100).toFixed(1) : "0.0";
+  const interestPct = data.totalPayment > 0 ? ((data.totalInterest / data.totalPayment) * 100).toFixed(1) : "0.0";
 
   const results = [
     ["Total Payment", formatCurrency(data.totalPayment)],
@@ -514,7 +514,7 @@ export async function exportMortgageExcel(data: MortgageExportData) {
   });
 
   for (const [label, value, color] of monthlyCosts) {
-    const pct = ((value / data.totalMonthly) * 100).toFixed(1);
+    const pct = data.totalMonthly > 0 ? ((value / data.totalMonthly) * 100).toFixed(1) : "0.0";
     summary.getCell(`B${row}`).value = label;
     summary.getCell(`B${row}`).font = { size: 10, color: { argb: COLORS.slate.slice(2) } };
     summary.getCell(`C${row}`).value = `${formatCurrency(value)} (${pct}%)`;
@@ -540,7 +540,7 @@ export async function exportMortgageExcel(data: MortgageExportData) {
 
   let chartRow = 7;
   for (const [label, value, color] of monthlyCosts) {
-    const pct = ((value / data.totalMonthly) * 100).toFixed(0);
+    const pct = data.totalMonthly > 0 ? ((value / data.totalMonthly) * 100).toFixed(0) : "0";
 
     // Color indicator
     summary.getCell(`E${chartRow}`).fill = { type: "pattern", pattern: "solid", fgColor: { argb: color.slice(2) } };
@@ -776,8 +776,8 @@ export async function exportInvestmentExcel(data: InvestmentExportData) {
   summary.getCell(`B${row}`).border = { bottom: { style: "thin", color: { argb: COLORS.sand.slice(2) } } };
   row++;
 
-  const contribPct = ((data.totalContributions / data.futureValue) * 100).toFixed(1);
-  const interestPct = ((data.totalInterest / data.futureValue) * 100).toFixed(1);
+  const contribPct = data.futureValue > 0 ? ((data.totalContributions / data.futureValue) * 100).toFixed(1) : "0.0";
+  const interestPct = data.futureValue > 0 ? ((data.totalInterest / data.futureValue) * 100).toFixed(1) : "0.0";
 
   // Contributions
   summary.getCell(`B${row}`).value = "Contributions";
