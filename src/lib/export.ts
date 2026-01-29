@@ -242,8 +242,8 @@ export async function exportLoanExcel(data: LoanExportData) {
   summary.getCell(`F${chartDataRow + 1}`).value = data.totalInterest;
 
   // Hide chart data
-  summary.getColumn(5).hidden = false;
-  summary.getColumn(6).hidden = false;
+  summary.getColumn(5).hidden = true;
+  summary.getColumn(6).hidden = true;
 
   // Add pie chart
   const chart = workbook.addWorksheet("_chartdata");
