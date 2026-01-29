@@ -485,6 +485,18 @@ export function MortgageCalculator() {
 
   const totalCustomCostsMonthly = customCostsMonthly.reduce((sum, c) => sum + c.monthlyDollars, 0);
   const totalCustomCosts = totalCustomCostsMonthly * 12 * actualTermYears;
+
+  // Prepare custom costs for chart (total values over term)
+  const customCostsForChart = customCostsMonthly.map(c => ({
+    name: c.name || "Other",
+    value: c.monthlyDollars * 12 * actualTermYears,
+  }));
+
+  // Prepare custom costs for export/print (monthly values)
+  const customCostsForExport = customCostsMonthly.map(c => ({
+    name: c.name || "Other",
+    monthlyAmount: c.monthlyDollars,
+  }));
   const totalMonthlyWithExtras = results.totalMonthly + totalCustomCostsMonthly;
   const loanTotalPayment = hasExtraPayments && extraPaymentResults
     ? extraPaymentResults.actualTotalPayment
@@ -531,13 +543,13 @@ export function MortgageCalculator() {
       monthlyTax: results.monthlyPropertyTax,
       monthlyInsurance: results.monthlyInsurance,
       monthlyHOA: results.monthlyHoa,
-      monthlyOther: totalCustomCostsMonthly,
+      customCosts: customCostsForExport,
       totalMonthly: totalMonthlyWithExtras,
       totalCost: totalCostOfOwnership,
       totalInterest: loanDetails.totalInterest,
       schedule: amortizationSchedule,
     });
-  }, [inputs, results, downPaymentDollars, totalCustomCostsMonthly, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
+  }, [inputs, results, downPaymentDollars, customCostsForExport, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
 
   const handleExportExcel = useCallback(() => {
     exportMortgageExcel({
@@ -550,13 +562,13 @@ export function MortgageCalculator() {
       monthlyTax: results.monthlyPropertyTax,
       monthlyInsurance: results.monthlyInsurance,
       monthlyHOA: results.monthlyHoa,
-      monthlyOther: totalCustomCostsMonthly,
+      customCosts: customCostsForExport,
       totalMonthly: totalMonthlyWithExtras,
       totalCost: totalCostOfOwnership,
       totalInterest: loanDetails.totalInterest,
       schedule: amortizationSchedule,
     });
-  }, [inputs, results, downPaymentDollars, totalCustomCostsMonthly, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
+  }, [inputs, results, downPaymentDollars, customCostsForExport, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
 
   const handlePrint = useCallback(() => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -570,13 +582,13 @@ export function MortgageCalculator() {
       monthlyTax: results.monthlyPropertyTax,
       monthlyInsurance: results.monthlyInsurance,
       monthlyHOA: results.monthlyHoa,
-      monthlyOther: totalCustomCostsMonthly,
+      customCosts: customCostsForExport,
       totalMonthly: totalMonthlyWithExtras,
       totalCost: totalCostOfOwnership,
       totalInterest: loanDetails.totalInterest,
       schedule: amortizationSchedule,
     }, isDark);
-  }, [inputs, results, downPaymentDollars, totalCustomCostsMonthly, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
+  }, [inputs, results, downPaymentDollars, customCostsForExport, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
 
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">
@@ -905,11 +917,11 @@ export function MortgageCalculator() {
           <div className="space-y-4">
             <MortgageCostChart
               principal={results.loanAmount}
-              interest={loanDetails.totalInterest}
+              interest={hasExtraPayments && extraPaymentResults ? extraPaymentResults.actualTotalInterest : loanDetails.totalInterest}
               tax={totalPropertyTax}
               insurance={totalInsurance}
               hoa={totalHoa}
-              other={totalCustomCosts}
+              customCosts={customCostsForChart}
             />
             <BalanceChart
               schedule={amortizationSchedule}
