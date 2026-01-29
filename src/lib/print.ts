@@ -1,6 +1,16 @@
 import type { AmortizationRow, InvestmentGrowthRow } from "./calculations";
 import { formatCurrency } from "./format";
 
+// Escape HTML special characters to prevent XSS injection
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function getThemeStyles(isDark: boolean) {
   if (isDark) {
     return {
@@ -137,6 +147,18 @@ function printViaIframe(title: string, content: string, isDark: boolean) {
   iframe.style.width = "0";
   iframe.style.height = "0";
   iframe.style.border = "none";
+
+  // Set onload handler BEFORE writing to iframe to avoid missing synchronous load events
+  iframe.onload = () => {
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+      // Clean up after print dialog closes
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }, 300);
+  };
+
   document.body.appendChild(iframe);
 
   const iframeDoc = iframe.contentWindow?.document;
@@ -144,17 +166,6 @@ function printViaIframe(title: string, content: string, isDark: boolean) {
     iframeDoc.open();
     iframeDoc.write(html);
     iframeDoc.close();
-
-    // Wait for fonts to load, then print
-    iframe.onload = () => {
-      setTimeout(() => {
-        iframe.contentWindow?.print();
-        // Clean up after print dialog closes
-        setTimeout(() => {
-          document.body.removeChild(iframe);
-        }, 1000);
-      }, 300);
-    };
   }
 }
 
@@ -176,7 +187,7 @@ export function printLoan(data: LoanPrintData, isDark: boolean) {
   });
 
   const graceInfo = data.gracePeriod && data.gracePeriod.type !== "None"
-    ? `<div class="row"><span class="label">Grace Period</span><span class="value">${data.gracePeriod.months} months (${data.gracePeriod.type})</span></div>`
+    ? `<div class="row"><span class="label">Grace Period</span><span class="value">${data.gracePeriod.months} months (${escapeHtml(data.gracePeriod.type)})</span></div>`
     : "";
 
   const scheduleRows = data.schedule.map(row => `
@@ -198,7 +209,7 @@ export function printLoan(data: LoanPrintData, isDark: boolean) {
       <div class="row"><span class="label">Principal</span><span class="value">${formatCurrency(data.principal)}</span></div>
       <div class="row"><span class="label">Interest Rate</span><span class="value">${data.rate}%</span></div>
       <div class="row"><span class="label">Term</span><span class="value">${data.years} years</span></div>
-      <div class="row"><span class="label">Repayment Type</span><span class="value">${data.repaymentType}</span></div>
+      <div class="row"><span class="label">Repayment Type</span><span class="value">${escapeHtml(data.repaymentType)}</span></div>
       ${graceInfo}
     </div>
 
@@ -292,7 +303,7 @@ export function printMortgage(data: MortgagePrintData, isDark: boolean) {
       <div class="row"><span class="label">Property Tax</span><span class="value">${formatCurrency(data.monthlyTax)}</span></div>
       <div class="row"><span class="label">Insurance</span><span class="value">${formatCurrency(data.monthlyInsurance)}</span></div>
       ${data.monthlyHOA > 0 ? `<div class="row"><span class="label">HOA</span><span class="value">${formatCurrency(data.monthlyHOA)}</span></div>` : ""}
-      ${data.customCosts.filter(c => c.monthlyAmount > 0).map(c => `<div class="row"><span class="label">${c.name || "Other"}</span><span class="value">${formatCurrency(c.monthlyAmount)}</span></div>`).join("")}
+      ${data.customCosts.filter(c => c.monthlyAmount > 0).map(c => `<div class="row"><span class="label">${escapeHtml(c.name || "Other")}</span><span class="value">${formatCurrency(c.monthlyAmount)}</span></div>`).join("")}
     </div>
 
     <h2>Totals</h2>
