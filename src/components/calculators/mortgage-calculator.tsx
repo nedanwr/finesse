@@ -1,10 +1,13 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Plus, X } from "lucide-react";
 import { InputField } from "../input-field";
 import { formatCurrency, formatCurrencyPrecise, formatWithCommas, parseFormattedNumber } from "../../lib/format";
 import { calculateMortgage, calculateLoanPayment, generateAmortizationSchedule } from "../../lib/calculations";
 import { AmortizationTable } from "../amortization-table";
 import { BalanceChart, MortgageCostChart } from "../charts";
+import { ExportControls } from "../export-controls";
+import { exportMortgageCSV } from "../../lib/export";
+import { printMortgage } from "../../lib/print";
 
 type InputMode = "dollar" | "percent";
 type Frequency = "monthly" | "yearly";
@@ -469,6 +472,45 @@ export function MortgageCalculator() {
     }));
   };
 
+  const handleExportCSV = useCallback(() => {
+    exportMortgageCSV({
+      homePrice: inputs.homePrice,
+      downPayment: downPaymentDollars,
+      loanAmount: results.loanAmount,
+      rate: inputs.rate,
+      years: inputs.years,
+      monthlyPI: results.monthlyPrincipalInterest,
+      monthlyTax: results.monthlyPropertyTax,
+      monthlyInsurance: results.monthlyInsurance,
+      monthlyHOA: results.monthlyHoa,
+      monthlyOther: totalCustomCostsMonthly,
+      totalMonthly: totalMonthlyWithExtras,
+      totalCost: totalCostOfOwnership,
+      totalInterest: loanDetails.totalInterest,
+      schedule: amortizationSchedule,
+    });
+  }, [inputs, results, downPaymentDollars, totalCustomCostsMonthly, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
+
+  const handlePrint = useCallback(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    printMortgage({
+      homePrice: inputs.homePrice,
+      downPayment: downPaymentDollars,
+      loanAmount: results.loanAmount,
+      rate: inputs.rate,
+      years: inputs.years,
+      monthlyPI: results.monthlyPrincipalInterest,
+      monthlyTax: results.monthlyPropertyTax,
+      monthlyInsurance: results.monthlyInsurance,
+      monthlyHOA: results.monthlyHoa,
+      monthlyOther: totalCustomCostsMonthly,
+      totalMonthly: totalMonthlyWithExtras,
+      totalCost: totalCostOfOwnership,
+      totalInterest: loanDetails.totalInterest,
+      schedule: amortizationSchedule,
+    }, isDark);
+  }, [inputs, results, downPaymentDollars, totalCustomCostsMonthly, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
+
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">
       {/* Column 1: Inputs */}
@@ -668,7 +710,10 @@ export function MortgageCalculator() {
 
       {/* Column 3: Visualizations */}
       <div className="xl:border-l xl:border-sand xl:pl-6 lg:col-span-2 xl:col-span-1 lg:overflow-y-auto lg:pb-4">
-        <h2 className="text-base font-semibold text-charcoal mb-4">Visualizations</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-charcoal">Visualizations</h2>
+          <ExportControls onExportCSV={handleExportCSV} onPrint={handlePrint} />
+        </div>
 
         {amortizationSchedule.length > 0 && (
           <div className="space-y-4">
