@@ -115,12 +115,9 @@ export function generateInvestmentSchedule(
   });
 
   for (let year = 1; year <= years; year++) {
-    let yearlyInterest = 0;
-
     for (let month = 1; month <= 12; month++) {
       const interest = balance * monthlyRate;
       balance += interest + monthly;
-      yearlyInterest += interest;
       totalContributions += monthly;
     }
 
