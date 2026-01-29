@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { InputField } from "../input-field";
 import { formatCurrency, formatCurrencyPrecise } from "../../lib/format";
 import {
@@ -10,6 +10,9 @@ import {
 } from "../../lib/calculations";
 import { AmortizationTable } from "../amortization-table";
 import { BalanceChart, PaymentBreakdownChart } from "../charts";
+import { ExportControls } from "../export-controls";
+import { exportLoanCSV } from "../../lib/export";
+import { printLoan } from "../../lib/print";
 
 type RepaymentType = "standard" | "balloon" | "bullet";
 
@@ -92,6 +95,44 @@ export function LoanCalculator() {
       principalPercent: (firstMonthPrincipal / standardResults.monthlyPayment) * 100,
     };
   }, [inputs.principal, inputs.rate, inputs.repaymentType, standardResults, hasGracePeriod]);
+
+  const handleExportCSV = useCallback(() => {
+    const repaymentLabels = { standard: "Amortized", balloon: "Interest Only", bullet: "Bullet" };
+    exportLoanCSV({
+      principal: inputs.principal,
+      rate: inputs.rate,
+      years: inputs.years,
+      repaymentType: repaymentLabels[inputs.repaymentType],
+      monthlyPayment: results.monthlyPayment,
+      totalPayment: results.totalPayment,
+      totalInterest: results.totalInterest,
+      schedule: amortizationSchedule,
+    });
+  }, [inputs, results, amortizationSchedule]);
+
+  const handlePrint = useCallback(() => {
+    const repaymentLabels = { standard: "Amortized", balloon: "Interest Only", bullet: "Bullet" };
+    const graceLabels: Record<GracePeriodType, string> = {
+      none: "None",
+      interest_only: "Interest Only",
+      no_payment: "Full Deferral",
+    };
+    const isDark = document.documentElement.classList.contains("dark");
+    printLoan({
+      principal: inputs.principal,
+      rate: inputs.rate,
+      years: inputs.years,
+      repaymentType: repaymentLabels[inputs.repaymentType],
+      gracePeriod: inputs.gracePeriodType !== "none" ? {
+        type: graceLabels[inputs.gracePeriodType],
+        months: inputs.gracePeriodMonths,
+      } : undefined,
+      monthlyPayment: results.monthlyPayment,
+      totalPayment: results.totalPayment,
+      totalInterest: results.totalInterest,
+      schedule: amortizationSchedule,
+    }, isDark);
+  }, [inputs, results, amortizationSchedule]);
 
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">
@@ -325,7 +366,10 @@ export function LoanCalculator() {
 
       {/* Column 3: Visualizations */}
       <div className="xl:border-l xl:border-sand xl:pl-6 lg:col-span-2 xl:col-span-1 lg:overflow-y-auto lg:pb-4">
-        <h2 className="text-base font-semibold text-charcoal mb-4">Visualizations</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-semibold text-charcoal">Visualizations</h2>
+          <ExportControls onExportCSV={handleExportCSV} onPrint={handlePrint} />
+        </div>
 
         {inputs.repaymentType === "standard" && amortizationSchedule.length > 0 ? (
           <div className="space-y-4">
