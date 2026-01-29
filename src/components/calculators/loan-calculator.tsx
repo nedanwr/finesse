@@ -152,12 +152,18 @@ export function LoanCalculator() {
       rate: inputs.rate,
       years: inputs.years,
       repaymentType: repaymentLabels[inputs.repaymentType],
-      monthlyPayment: results.monthlyPayment,
-      totalPayment: results.totalPayment,
-      totalInterest: results.totalInterest,
+      monthlyPayment: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.effectiveMonthlyPayment
+        : results.monthlyPayment,
+      totalPayment: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.actualTotalPayment
+        : results.totalPayment,
+      totalInterest: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.actualTotalInterest
+        : results.totalInterest,
       schedule: amortizationSchedule,
     });
-  }, [inputs, results, amortizationSchedule]);
+  }, [inputs, results, amortizationSchedule, hasExtraPayments, extraPaymentResults]);
 
   const handleExportExcel = useCallback(() => {
     const repaymentLabels = { standard: "Amortized", balloon: "Interest Only", bullet: "Bullet" };
@@ -166,12 +172,18 @@ export function LoanCalculator() {
       rate: inputs.rate,
       years: inputs.years,
       repaymentType: repaymentLabels[inputs.repaymentType],
-      monthlyPayment: results.monthlyPayment,
-      totalPayment: results.totalPayment,
-      totalInterest: results.totalInterest,
+      monthlyPayment: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.effectiveMonthlyPayment
+        : results.monthlyPayment,
+      totalPayment: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.actualTotalPayment
+        : results.totalPayment,
+      totalInterest: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.actualTotalInterest
+        : results.totalInterest,
       schedule: amortizationSchedule,
     });
-  }, [inputs, results, amortizationSchedule]);
+  }, [inputs, results, amortizationSchedule, hasExtraPayments, extraPaymentResults]);
 
   const handlePrint = useCallback(() => {
     const repaymentLabels = { standard: "Amortized", balloon: "Interest Only", bullet: "Bullet" };
@@ -190,12 +202,18 @@ export function LoanCalculator() {
         type: graceLabels[inputs.gracePeriodType],
         months: inputs.gracePeriodMonths,
       } : undefined,
-      monthlyPayment: results.monthlyPayment,
-      totalPayment: results.totalPayment,
-      totalInterest: results.totalInterest,
+      monthlyPayment: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.effectiveMonthlyPayment
+        : results.monthlyPayment,
+      totalPayment: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.actualTotalPayment
+        : results.totalPayment,
+      totalInterest: hasExtraPayments && extraPaymentResults
+        ? extraPaymentResults.actualTotalInterest
+        : results.totalInterest,
       schedule: amortizationSchedule,
     }, isDark);
-  }, [inputs, results, amortizationSchedule]);
+  }, [inputs, results, amortizationSchedule, hasExtraPayments, extraPaymentResults]);
 
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">
