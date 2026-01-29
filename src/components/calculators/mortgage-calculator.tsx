@@ -334,17 +334,29 @@ function CustomCostInput({ cost, homePrice, onChange, onRemove }: CustomCostInpu
         </div>
         <div className="flex bg-sand rounded-md p-0.5">
           <button
-            onClick={() => onChange({ ...cost, frequency: "monthly" })}
+            onClick={() => cost.mode !== "percent" && onChange({ ...cost, frequency: "monthly" })}
+            disabled={cost.mode === "percent"}
+            title={cost.mode === "percent" ? "Percent mode is always annual" : undefined}
             className={`px-1.5 py-1 text-xs font-medium rounded transition-all ${
-              cost.frequency === "monthly" ? "bg-charcoal text-ivory" : "text-slate hover:text-charcoal"
+              cost.mode === "percent"
+                ? "text-stone cursor-not-allowed"
+                : cost.frequency === "monthly"
+                  ? "bg-charcoal text-ivory"
+                  : "text-slate hover:text-charcoal"
             }`}
           >
             /mo
           </button>
           <button
-            onClick={() => onChange({ ...cost, frequency: "yearly" })}
+            onClick={() => cost.mode !== "percent" && onChange({ ...cost, frequency: "yearly" })}
+            disabled={cost.mode === "percent"}
+            title={cost.mode === "percent" ? "Percent mode is always annual" : undefined}
             className={`px-1.5 py-1 text-xs font-medium rounded transition-all ${
-              cost.frequency === "yearly" ? "bg-charcoal text-ivory" : "text-slate hover:text-charcoal"
+              cost.mode === "percent"
+                ? "bg-charcoal/50 text-ivory/70 cursor-not-allowed"
+                : cost.frequency === "yearly"
+                  ? "bg-charcoal text-ivory"
+                  : "text-slate hover:text-charcoal"
             }`}
           >
             /yr
