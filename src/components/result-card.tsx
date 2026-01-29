@@ -1,4 +1,4 @@
-interface ResultCardProps {
+export interface ResultCardProps {
   label: string;
   value: string;
   highlight?: boolean;
