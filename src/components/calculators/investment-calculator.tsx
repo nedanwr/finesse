@@ -66,11 +66,23 @@ export function InvestmentCalculator() {
     }
 
     // Always include final year if not already included
-    if (!checkYears.includes(inputs.years) && inputs.years > 0) {
+    const hasFinalYear = checkYears.includes(inputs.years);
+    if (!hasFinalYear && inputs.years > 0) {
       points.push({ year: inputs.years, value: results.futureValue });
     }
 
-    return points.slice(0, 4); // Show max 4 milestones
+    // Show max 4 milestones, preserving the final year
+    if (points.length > 4) {
+      const lastPoint = points[points.length - 1];
+      const isFinalYearLast = lastPoint.year === inputs.years;
+      if (isFinalYearLast) {
+        // Keep first 3 points + final year
+        return [...points.slice(0, 3), lastPoint];
+      }
+      return points.slice(0, 4);
+    }
+
+    return points;
   }, [inputs.initial, monthlyContribution, effectiveRate, inputs.years, results.futureValue]);
 
   // Generate investment growth schedule
