@@ -343,6 +343,11 @@ export async function exportLoanExcel(data: LoanExportData) {
 // Mortgage Export
 // ============================================================================
 
+interface CustomCostExport {
+  name: string;
+  monthlyAmount: number;
+}
+
 interface MortgageExportData {
   homePrice: number;
   downPayment: number;
@@ -353,7 +358,7 @@ interface MortgageExportData {
   monthlyTax: number;
   monthlyInsurance: number;
   monthlyHOA: number;
-  monthlyOther: number;
+  customCosts: CustomCostExport[];
   totalMonthly: number;
   totalCost: number;
   totalInterest: number;
@@ -376,8 +381,14 @@ export function exportMortgageCSV(data: MortgageExportData) {
   lines.push(`Principal & Interest,${formatCurrency(data.monthlyPI)}`);
   lines.push(`Property Tax,${formatCurrency(data.monthlyTax)}`);
   lines.push(`Insurance,${formatCurrency(data.monthlyInsurance)}`);
-  lines.push(`HOA,${formatCurrency(data.monthlyHOA)}`);
-  lines.push(`Other Costs,${formatCurrency(data.monthlyOther)}`);
+  if (data.monthlyHOA > 0) {
+    lines.push(`HOA,${formatCurrency(data.monthlyHOA)}`);
+  }
+  for (const cost of data.customCosts) {
+    if (cost.monthlyAmount > 0) {
+      lines.push(`${cost.name || "Other"},${formatCurrency(cost.monthlyAmount)}`);
+    }
+  }
   lines.push(`Total Monthly,${formatCurrency(data.totalMonthly)}`);
   lines.push("");
   lines.push("Totals");
@@ -475,13 +486,18 @@ export async function exportMortgageExcel(data: MortgageExportData) {
   row++;
 
   // Monthly costs with visual bars
+  const customCostColors = ["FF9cb89c", "FFb8a88a", "FFa89090", "FF8aa8b8", "FFb8a0c0", "FFc0b890"];
   const monthlyCosts: [string, number, string][] = [
     ["Principal & Interest", data.monthlyPI, COLORS.charcoal],
     ["Property Tax", data.monthlyTax, COLORS.sage],
     ["Insurance", data.monthlyInsurance, COLORS.slate],
   ];
   if (data.monthlyHOA > 0) monthlyCosts.push(["HOA", data.monthlyHOA, "FFd97b5d"]);
-  if (data.monthlyOther > 0) monthlyCosts.push(["Other", data.monthlyOther, "FF9cb89c"]);
+  data.customCosts.forEach((cost, idx) => {
+    if (cost.monthlyAmount > 0) {
+      monthlyCosts.push([cost.name || "Other", cost.monthlyAmount, customCostColors[idx % customCostColors.length]]);
+    }
+  });
 
   for (const [label, value, color] of monthlyCosts) {
     const pct = ((value / data.totalMonthly) * 100).toFixed(1);
