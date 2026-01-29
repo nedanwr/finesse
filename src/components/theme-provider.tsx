@@ -20,6 +20,23 @@ function getSystemIsDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
 }
 
+function getStoredTheme(key: string, fallback: Theme): Theme {
+  try {
+    const stored = localStorage.getItem(key) as Theme | null
+    return stored || fallback
+  } catch {
+    return fallback
+  }
+}
+
+function setStoredTheme(key: string, theme: Theme) {
+  try {
+    localStorage.setItem(key, theme)
+  } catch {
+    // Ignore storage errors (e.g., private browsing mode)
+  }
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
@@ -27,7 +44,7 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    () => getStoredTheme(storageKey, defaultTheme)
   )
   const [isDark, setIsDark] = useState(() =>
     theme === "system" ? getSystemIsDark() : theme === "dark"
@@ -66,9 +83,9 @@ export function ThemeProvider({
   const value = {
     theme,
     isDark,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
-      setTheme(theme)
+    setTheme: (newTheme: Theme) => {
+      setStoredTheme(storageKey, newTheme)
+      setTheme(newTheme)
     },
   }
 
