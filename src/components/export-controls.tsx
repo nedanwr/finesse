@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { Download, Printer, FileSpreadsheet, FileText } from "lucide-react";
 
 interface ExportControlsProps {
@@ -10,6 +10,7 @@ interface ExportControlsProps {
 export function ExportControls({ onExportCSV, onExportExcel, onPrint }: ExportControlsProps) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const menuId = useId();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -17,8 +18,17 @@ export function ExportControls({ onExportCSV, onExportExcel, onPrint }: ExportCo
         setShowDropdown(false);
       }
     }
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setShowDropdown(false);
+      }
+    }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, []);
 
   return (
@@ -26,32 +36,42 @@ export function ExportControls({ onExportCSV, onExportExcel, onPrint }: ExportCo
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setShowDropdown(!showDropdown)}
+          aria-haspopup="menu"
+          aria-expanded={showDropdown}
+          aria-controls={menuId}
+          aria-label="Download options"
           className="p-1.5 text-slate hover:text-charcoal transition-colors"
-          title="Download"
         >
           <Download size={16} />
         </button>
 
         {showDropdown && (
-          <div className="absolute right-0 top-full mt-1 bg-cream border border-sand rounded-lg shadow-lg py-1 z-50 min-w-[140px]">
+          <div
+            id={menuId}
+            role="menu"
+            aria-label="Export formats"
+            className="absolute right-0 top-full mt-1 bg-cream border border-sand rounded-lg shadow-lg py-1 z-50 min-w-[140px]"
+          >
             <button
+              role="menuitem"
               onClick={() => {
                 onExportExcel();
                 setShowDropdown(false);
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-charcoal hover:bg-sand transition-colors"
             >
-              <FileSpreadsheet size={14} />
+              <FileSpreadsheet size={14} aria-hidden="true" />
               Excel (.xlsx)
             </button>
             <button
+              role="menuitem"
               onClick={() => {
                 onExportCSV();
                 setShowDropdown(false);
               }}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-charcoal hover:bg-sand transition-colors"
             >
-              <FileText size={14} />
+              <FileText size={14} aria-hidden="true" />
               CSV (.csv)
             </button>
           </div>
@@ -60,10 +80,10 @@ export function ExportControls({ onExportCSV, onExportExcel, onPrint }: ExportCo
 
       <button
         onClick={onPrint}
+        aria-label="Print or save as PDF"
         className="p-1.5 text-slate hover:text-charcoal transition-colors"
-        title="Print / Save as PDF"
       >
-        <Printer size={16} />
+        <Printer size={16} aria-hidden="true" />
       </button>
     </div>
   );
