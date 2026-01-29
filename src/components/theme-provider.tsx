@@ -33,19 +33,30 @@ export function ThemeProvider({
   useEffect(() => {
     const root = window.document.documentElement
 
-    root.classList.remove("light", "dark")
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light"
-
-      root.classList.add(systemTheme)
-      return
+    const applyTheme = (isDark: boolean) => {
+      root.classList.remove("light", "dark")
+      root.classList.add(isDark ? "dark" : "light")
     }
 
-    root.classList.add(theme)
+    if (theme === "system") {
+      const mq = window.matchMedia("(prefers-color-scheme: dark)")
+
+      // Set initial theme based on system preference
+      applyTheme(mq.matches)
+
+      // Listen for system theme changes
+      const handler = (e: MediaQueryListEvent) => {
+        applyTheme(e.matches)
+      }
+
+      mq.addEventListener("change", handler)
+
+      return () => {
+        mq.removeEventListener("change", handler)
+      }
+    }
+
+    applyTheme(theme === "dark")
   }, [theme])
 
   const value = {
