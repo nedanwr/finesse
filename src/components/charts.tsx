@@ -568,14 +568,29 @@ export function InvestmentStackedChart({ schedule }: InvestmentStackedChartProps
   );
 }
 
+interface CustomCostItem {
+  name: string;
+  value: number;
+}
+
 interface MortgageCostChartProps {
   principal: number;
   interest: number;
   tax: number;
   insurance: number;
   hoa?: number;
-  other?: number;
+  customCosts?: CustomCostItem[];
 }
+
+// Extended color palette for custom costs
+const CUSTOM_COST_COLORS = [
+  "#9cb89c", // light sage
+  "#b8a88a", // tan
+  "#a89090", // dusty rose
+  "#8aa8b8", // steel blue
+  "#b8a0c0", // lavender
+  "#c0b890", // olive
+];
 
 export function MortgageCostChart({
   principal,
@@ -583,10 +598,11 @@ export function MortgageCostChart({
   tax,
   insurance,
   hoa = 0,
-  other = 0,
+  customCosts = [],
 }: MortgageCostChartProps) {
   const COLORS = useColors();
-  const total = principal + interest + tax + insurance + hoa + other;
+  const customCostsTotal = customCosts.reduce((sum, c) => sum + c.value, 0);
+  const total = principal + interest + tax + insurance + hoa + customCostsTotal;
   if (total === 0) return null;
 
   const data = [
@@ -595,7 +611,13 @@ export function MortgageCostChart({
     { name: "Property Tax", value: tax, color: COLORS.tax },
     { name: "Insurance", value: insurance, color: COLORS.insurance },
     ...(hoa > 0 ? [{ name: "HOA", value: hoa, color: COLORS.hoa }] : []),
-    ...(other > 0 ? [{ name: "Other", value: other, color: COLORS.other }] : []),
+    ...customCosts
+      .filter(c => c.value > 0)
+      .map((c, idx) => ({
+        name: c.name || "Other",
+        value: c.value,
+        color: CUSTOM_COST_COLORS[idx % CUSTOM_COST_COLORS.length],
+      })),
   ];
 
   return (
