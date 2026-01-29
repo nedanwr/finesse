@@ -16,9 +16,17 @@ export function formatCurrencyPrecise(value: number): string {
   }).format(value);
 }
 
+const integerFormatter = new Intl.NumberFormat("en-US", {
+  useGrouping: true,
+  maximumFractionDigits: 0,
+});
+
 export function formatWithCommas(str: string): string {
+  if (!str) return str;
   const parts = str.split(".");
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const intPart = parts[0].replace(/,/g, "");
+  // Format integer part with Intl, preserve decimal part as-is for live input
+  parts[0] = intPart ? integerFormatter.format(Number(intPart)) : "";
   return parts.join(".");
 }
 
