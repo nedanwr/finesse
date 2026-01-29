@@ -232,6 +232,11 @@ export function printLoan(data: LoanPrintData, isDark: boolean) {
   printViaIframe("Loan Analysis", content, isDark);
 }
 
+interface CustomCostPrint {
+  name: string;
+  monthlyAmount: number;
+}
+
 interface MortgagePrintData {
   homePrice: number;
   downPayment: number;
@@ -242,7 +247,7 @@ interface MortgagePrintData {
   monthlyTax: number;
   monthlyInsurance: number;
   monthlyHOA: number;
-  monthlyOther: number;
+  customCosts: CustomCostPrint[];
   totalMonthly: number;
   totalCost: number;
   totalInterest: number;
@@ -287,7 +292,7 @@ export function printMortgage(data: MortgagePrintData, isDark: boolean) {
       <div class="row"><span class="label">Property Tax</span><span class="value">${formatCurrency(data.monthlyTax)}</span></div>
       <div class="row"><span class="label">Insurance</span><span class="value">${formatCurrency(data.monthlyInsurance)}</span></div>
       ${data.monthlyHOA > 0 ? `<div class="row"><span class="label">HOA</span><span class="value">${formatCurrency(data.monthlyHOA)}</span></div>` : ""}
-      ${data.monthlyOther > 0 ? `<div class="row"><span class="label">Other Costs</span><span class="value">${formatCurrency(data.monthlyOther)}</span></div>` : ""}
+      ${data.customCosts.filter(c => c.monthlyAmount > 0).map(c => `<div class="row"><span class="label">${c.name || "Other"}</span><span class="value">${formatCurrency(c.monthlyAmount)}</span></div>`).join("")}
     </div>
 
     <h2>Totals</h2>
