@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useLayoutEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { InputField } from "../input-field";
 import { formatCurrency, formatCurrencyPrecise, formatWithCommas, parseFormattedNumber } from "../../lib/format";
@@ -45,53 +45,43 @@ interface MortgageInputs {
   extraYearlyMonth: number;
 }
 
-
-interface ToggleInputProps {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-  mode: InputMode;
-  onModeChange: (mode: InputMode) => void;
-  decimals?: number;
-}
-
-function ToggleInput({
-  label,
-  value,
-  onChange,
-  mode,
-  onModeChange,
-  decimals = 0,
-}: ToggleInputProps) {
+// Shared hook for formatted numeric input with cursor tracking
+function useFormattedInput(
+  value: number,
+  onChange: (value: number) => void,
+  decimals: number
+) {
   const inputRef = useRef<HTMLInputElement>(null);
   const cursorRef = useRef<number>(0);
 
-  const formatValue = (num: number): string => {
+  const formatValue = useCallback((num: number): string => {
     if (num === 0) return "";
-    const effectiveDecimals = mode === "percent" ? 2 : decimals;
-    const str = effectiveDecimals > 0 ? num.toString() : Math.floor(num).toString();
+    const str = decimals > 0 ? num.toString() : Math.floor(num).toString();
     return formatWithCommas(str);
-  };
+  }, [decimals]);
 
   const [displayValue, setDisplayValue] = useState(() => formatValue(value));
+  const [prevValue, setPrevValue] = useState(value);
+  const [prevDecimals, setPrevDecimals] = useState(decimals);
 
-  // Sync when value or mode changes externally
-  useEffect(() => {
-    const formatted = formatValue(value);
+  // Sync display value when value or decimals change externally
+  if (value !== prevValue || decimals !== prevDecimals) {
+    setPrevValue(value);
+    setPrevDecimals(decimals);
     if (parseFormattedNumber(displayValue) !== value) {
-      setDisplayValue(formatted);
+      setDisplayValue(formatValue(value));
     }
-  }, [value, mode]);
+  }
 
   // Restore cursor position after render
-  useEffect(() => {
+  useLayoutEffect(() => {
     const input = inputRef.current;
     if (input && document.activeElement === input) {
       input.setSelectionRange(cursorRef.current, cursorRef.current);
     }
   }, [displayValue]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     const rawValue = input.value;
     const cursorPos = input.selectionStart || 0;
@@ -105,12 +95,11 @@ function ToggleInput({
         cleaned.slice(decimalIndex + 1).replace(/\./g, "");
     }
 
-    const effectiveDecimals = mode === "percent" ? 2 : decimals;
-    if (effectiveDecimals === 0 && cleaned.includes(".")) {
+    if (decimals === 0 && cleaned.includes(".")) {
       cleaned = cleaned.split(".")[0];
-    } else if (effectiveDecimals > 0 && cleaned.includes(".")) {
+    } else if (decimals > 0 && cleaned.includes(".")) {
       const [intPart, decPart] = cleaned.split(".");
-      cleaned = `${intPart}.${decPart.slice(0, effectiveDecimals)}`;
+      cleaned = `${intPart}.${decPart.slice(0, decimals)}`;
     }
 
     const formatted = formatWithCommas(cleaned);
@@ -131,11 +120,38 @@ function ToggleInput({
 
     setDisplayValue(formatted);
     onChange(parseFormattedNumber(formatted));
-  };
+  }, [decimals, onChange]);
 
-  const handleBlur = () => {
+  const handleBlur = useCallback(() => {
     setDisplayValue(formatValue(value));
-  };
+  }, [formatValue, value]);
+
+  return { inputRef, displayValue, handleChange, handleBlur };
+}
+
+interface ToggleInputProps {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+  mode: InputMode;
+  onModeChange: (mode: InputMode) => void;
+  decimals?: number;
+}
+
+function ToggleInput({
+  label,
+  value,
+  onChange,
+  mode,
+  onModeChange,
+  decimals = 0,
+}: ToggleInputProps) {
+  const effectiveDecimals = mode === "percent" ? 2 : decimals;
+  const { inputRef, displayValue, handleChange, handleBlur } = useFormattedInput(
+    value,
+    onChange,
+    effectiveDecimals
+  );
 
   return (
     <div>
@@ -201,65 +217,16 @@ interface CustomCostInputProps {
 }
 
 function CustomCostInput({ cost, homePrice, onChange, onRemove }: CustomCostInputProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const cursorRef = useRef<number>(0);
-
-  const formatValue = (num: number): string => {
-    if (num === 0) return "";
-    const effectiveDecimals = cost.mode === "percent" ? 2 : 0;
-    const str = effectiveDecimals > 0 ? num.toString() : Math.floor(num).toString();
-    return formatWithCommas(str);
-  };
-
-  const [displayValue, setDisplayValue] = useState(() => formatValue(cost.value));
-
-  useEffect(() => {
-    const formatted = formatValue(cost.value);
-    if (parseFormattedNumber(displayValue) !== cost.value) {
-      setDisplayValue(formatted);
-    }
-  }, [cost.value, cost.mode]);
-
-  useEffect(() => {
-    const input = inputRef.current;
-    if (input && document.activeElement === input) {
-      input.setSelectionRange(cursorRef.current, cursorRef.current);
-    }
-  }, [displayValue]);
-
-  const handleValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target;
-    const rawValue = input.value;
-    const cursorPos = input.selectionStart || 0;
-
-    let cleaned = rawValue.replace(/[^\d.]/g, "");
-    const decimalIndex = cleaned.indexOf(".");
-    if (decimalIndex !== -1) {
-      cleaned = cleaned.slice(0, decimalIndex + 1) + cleaned.slice(decimalIndex + 1).replace(/\./g, "");
-    }
-
-    const effectiveDecimals = cost.mode === "percent" ? 2 : 0;
-    if (effectiveDecimals === 0 && cleaned.includes(".")) {
-      cleaned = cleaned.split(".")[0];
-    } else if (effectiveDecimals > 0 && cleaned.includes(".")) {
-      const [intPart, decPart] = cleaned.split(".");
-      cleaned = `${intPart}.${decPart.slice(0, effectiveDecimals)}`;
-    }
-
-    const formatted = formatWithCommas(cleaned);
-    const digitsBeforeCursor = rawValue.slice(0, cursorPos).replace(/[^\d.]/g, "").length;
-
-    let newCursor = 0;
-    let digitCount = 0;
-    for (let i = 0; i < formatted.length && digitCount < digitsBeforeCursor; i++) {
-      newCursor = i + 1;
-      if (/[\d.]/.test(formatted[i])) digitCount++;
-    }
-    cursorRef.current = newCursor;
-
-    setDisplayValue(formatted);
-    onChange({ ...cost, value: parseFormattedNumber(formatted) });
-  };
+  const effectiveDecimals = cost.mode === "percent" ? 2 : 0;
+  const handleValueUpdate = useCallback(
+    (newValue: number) => onChange({ ...cost, value: newValue }),
+    [cost, onChange]
+  );
+  const { inputRef, displayValue, handleChange, handleBlur } = useFormattedInput(
+    cost.value,
+    handleValueUpdate,
+    effectiveDecimals
+  );
 
   const handleModeChange = (mode: InputMode) => {
     let newValue = cost.value;
@@ -300,8 +267,8 @@ function CustomCostInput({ cost, homePrice, onChange, onRemove }: CustomCostInpu
             type="text"
             inputMode="decimal"
             value={displayValue}
-            onChange={handleValueChange}
-            onBlur={() => setDisplayValue(formatValue(cost.value))}
+            onChange={handleChange}
+            onBlur={handleBlur}
             placeholder="0"
             className={`
               w-full bg-ivory border border-sand rounded-lg py-2 text-sm font-medium
