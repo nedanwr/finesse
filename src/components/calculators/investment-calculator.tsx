@@ -146,11 +146,13 @@ export function InvestmentCalculator() {
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label id="contribution-label" className="text-xs font-medium text-slate uppercase tracking-wide">
+              <span id="contribution-label" className="text-xs font-medium text-slate uppercase tracking-wide">
                 Contribution
-              </label>
-              <div className="flex bg-sand rounded-lg p-0.5">
+              </span>
+              <div role="group" aria-labelledby="contribution-label" className="flex bg-sand rounded-lg p-0.5">
                 <button
+                  type="button"
+                  aria-pressed={inputs.contributionFrequency === "monthly"}
                   onClick={() => setInputs((prev) => ({ ...prev, contributionFrequency: "monthly" }))}
                   className={`px-2 py-0.5 text-xs font-medium rounded-md transition-all ${
                     inputs.contributionFrequency === "monthly"
@@ -161,6 +163,8 @@ export function InvestmentCalculator() {
                   Monthly
                 </button>
                 <button
+                  type="button"
+                  aria-pressed={inputs.contributionFrequency === "yearly"}
                   onClick={() => setInputs((prev) => ({ ...prev, contributionFrequency: "yearly" }))}
                   className={`px-2 py-0.5 text-xs font-medium rounded-md transition-all ${
                     inputs.contributionFrequency === "yearly"
