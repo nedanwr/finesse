@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 import {
   AreaChart,
   Area,
@@ -57,6 +57,9 @@ interface BalanceChartProps {
 export function BalanceChart({ schedule, periodLabel = "Year", monthlyCosts }: BalanceChartProps) {
   const [view, setView] = useState<ChartView>("balance");
   const COLORS = useColors();
+  const gradientId = useId();
+  const principalGradientId = `principal${gradientId}`;
+  const interestGradientId = `interest${gradientId}`;
 
   if (schedule.length === 0) return null;
 
@@ -140,11 +143,11 @@ export function BalanceChart({ schedule, periodLabel = "Year", monthlyCosts }: B
           {view === "balance" ? (
             <AreaChart data={balanceData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="principalGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={principalGradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={COLORS.principal} stopOpacity={0.3} />
                   <stop offset="95%" stopColor={COLORS.principal} stopOpacity={0} />
                 </linearGradient>
-                <linearGradient id="interestGradient" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id={interestGradientId} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={COLORS.interest} stopOpacity={0.3} />
                   <stop offset="95%" stopColor={COLORS.interest} stopOpacity={0} />
                 </linearGradient>
@@ -177,7 +180,7 @@ export function BalanceChart({ schedule, periodLabel = "Year", monthlyCosts }: B
                 dataKey="principal"
                 stroke={COLORS.principal}
                 strokeWidth={2}
-                fill="url(#principalGradient)"
+                fill={`url(#${principalGradientId})`}
                 name="Principal Paid"
               />
               <Area
@@ -185,7 +188,7 @@ export function BalanceChart({ schedule, periodLabel = "Year", monthlyCosts }: B
                 dataKey="interest"
                 stroke={COLORS.interest}
                 strokeWidth={2}
-                fill="url(#interestGradient)"
+                fill={`url(#${interestGradientId})`}
                 name="Interest Paid"
               />
             </AreaChart>
@@ -325,6 +328,9 @@ interface InvestmentGrowthChartProps {
 
 export function InvestmentGrowthChart({ schedule }: InvestmentGrowthChartProps) {
   const COLORS = useColors();
+  const gradientId = useId();
+  const totalGradientId = `total${gradientId}`;
+  const contribGradientId = `contrib${gradientId}`;
   if (schedule.length === 0) return null;
 
   const data = schedule.map((row) => ({
@@ -340,11 +346,11 @@ export function InvestmentGrowthChart({ schedule }: InvestmentGrowthChartProps) 
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
-              <linearGradient id="totalGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={totalGradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={COLORS.growth} stopOpacity={0.3} />
                 <stop offset="95%" stopColor={COLORS.growth} stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="contribGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={contribGradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={COLORS.contributions} stopOpacity={0.2} />
                 <stop offset="95%" stopColor={COLORS.contributions} stopOpacity={0} />
               </linearGradient>
@@ -377,7 +383,7 @@ export function InvestmentGrowthChart({ schedule }: InvestmentGrowthChartProps) 
               dataKey="total"
               stroke={COLORS.growth}
               strokeWidth={2}
-              fill="url(#totalGradient)"
+              fill={`url(#${totalGradientId})`}
               name="Total Value"
             />
             <Area
@@ -385,7 +391,7 @@ export function InvestmentGrowthChart({ schedule }: InvestmentGrowthChartProps) 
               dataKey="contributions"
               stroke={COLORS.contributions}
               strokeWidth={2}
-              fill="url(#contribGradient)"
+              fill={`url(#${contribGradientId})`}
               name="Contributions"
             />
           </AreaChart>
@@ -474,6 +480,9 @@ interface InvestmentStackedChartProps {
 
 export function InvestmentStackedChart({ schedule }: InvestmentStackedChartProps) {
   const COLORS = useColors();
+  const gradientId = useId();
+  const contribStackGradientId = `contribStack${gradientId}`;
+  const interestStackGradientId = `interestStack${gradientId}`;
   if (schedule.length === 0) return null;
 
   const data = schedule.map((row) => ({
@@ -489,11 +498,11 @@ export function InvestmentStackedChart({ schedule }: InvestmentStackedChartProps
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
-              <linearGradient id="contribStackGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={contribStackGradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={COLORS.contributions} stopOpacity={0.3} />
                 <stop offset="95%" stopColor={COLORS.contributions} stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="interestStackGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={interestStackGradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={COLORS.growth} stopOpacity={0.3} />
                 <stop offset="95%" stopColor={COLORS.growth} stopOpacity={0} />
               </linearGradient>
@@ -527,7 +536,7 @@ export function InvestmentStackedChart({ schedule }: InvestmentStackedChartProps
               stackId="1"
               stroke={COLORS.contributions}
               strokeWidth={2}
-              fill="url(#contribStackGradient)"
+              fill={`url(#${contribStackGradientId})`}
               name="Contributions"
             />
             <Area
@@ -536,7 +545,7 @@ export function InvestmentStackedChart({ schedule }: InvestmentStackedChartProps
               stackId="1"
               stroke={COLORS.growth}
               strokeWidth={2}
-              fill="url(#interestStackGradient)"
+              fill={`url(#${interestStackGradientId})`}
               name="Interest"
             />
           </AreaChart>
