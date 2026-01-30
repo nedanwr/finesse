@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useLayoutEffect } from "react";
+import { useState, useMemo, useRef, useCallback, useLayoutEffect, useId } from "react";
 import { Plus, X } from "lucide-react";
 import { InputField } from "../input-field";
 import { formatCurrency, formatCurrencyPrecise, formatWithCommas, parseFormattedNumber } from "../../lib/format";
@@ -146,6 +146,7 @@ function ToggleInput({
   onModeChange,
   decimals = 0,
 }: ToggleInputProps) {
+  const id = useId();
   const effectiveDecimals = mode === "percent" ? 2 : decimals;
   const { inputRef, displayValue, handleChange, handleBlur } = useFormattedInput(
     value,
@@ -156,7 +157,7 @@ function ToggleInput({
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <label className="block text-xs font-medium text-slate tracking-wide uppercase">
+        <label htmlFor={id} className="block text-xs font-medium text-slate tracking-wide uppercase">
           {label}
         </label>
         <div className="flex bg-sand rounded-lg p-0.5">
@@ -188,6 +189,7 @@ function ToggleInput({
         )}
         <input
           ref={inputRef}
+          id={id}
           type="text"
           inputMode="decimal"
           value={displayValue}
