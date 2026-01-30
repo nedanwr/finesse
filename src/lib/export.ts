@@ -83,6 +83,7 @@ async function downloadWorkbook(workbook: Workbook, filename: string) {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("Failed to generate Excel file:", error);
+    throw error;
   }
 }
 
