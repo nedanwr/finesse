@@ -211,16 +211,21 @@ export function InvestmentCalculator() {
         {/* Inflation Adjustment */}
         <div className="pt-3 border-t border-sand">
           <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-medium text-slate uppercase tracking-wide">
+            <span id="inflation-toggle-label" className="text-xs font-medium text-slate uppercase tracking-wide">
               Inflation Adjustment
-            </label>
+            </span>
             <button
+              type="button"
+              role="switch"
+              aria-checked={inputs.adjustForInflation}
+              aria-labelledby="inflation-toggle-label"
               onClick={() => setInputs((prev) => ({ ...prev, adjustForInflation: !prev.adjustForInflation }))}
               className={`relative w-10 h-5 rounded-full transition-colors ${
                 inputs.adjustForInflation ? "bg-terracotta" : "bg-sand"
               }`}
             >
               <span
+                aria-hidden="true"
                 className={`absolute top-0.5 left-0.5 w-4 h-4 bg-ivory rounded-full shadow transition-transform ${
                   inputs.adjustForInflation ? "translate-x-5" : ""
                 }`}
