@@ -14,6 +14,7 @@ import {
 } from "../../lib/calculations";
 import { AmortizationTable } from "../amortization-table";
 import { BalanceChart, PaymentBreakdownChart } from "../charts";
+import { useTheme } from "../theme-provider";
 import { ExportControls } from "../export-controls";
 import { exportLoanCSV, exportLoanExcel } from "../../lib/export";
 import { printLoan } from "../../lib/print";
@@ -41,6 +42,7 @@ const graceOptions: { id: GracePeriodType; label: string }[] = [
 
 
 export function LoanCalculator() {
+  const { isDark } = useTheme();
   const [inputs, setInputs] = useState<LoanInputs>({
     principal: 25000,
     rate: 7.5,
@@ -192,7 +194,6 @@ export function LoanCalculator() {
       interest_only: "Interest Only",
       no_payment: "Full Deferral",
     };
-    const isDark = document.documentElement.classList.contains("dark");
     printLoan({
       principal: inputs.principal,
       rate: inputs.rate,
@@ -213,7 +214,7 @@ export function LoanCalculator() {
         : results.totalInterest,
       schedule: amortizationSchedule,
     }, isDark);
-  }, [inputs, results, amortizationSchedule, hasExtraPayments, extraPaymentResults]);
+  }, [inputs, results, amortizationSchedule, hasExtraPayments, extraPaymentResults, isDark]);
 
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">

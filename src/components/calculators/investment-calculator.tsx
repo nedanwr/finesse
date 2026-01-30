@@ -3,6 +3,7 @@ import { InputField } from "../input-field";
 import { formatCurrency } from "../../lib/format";
 import { calculateInvestment, generateInvestmentSchedule } from "../../lib/calculations";
 import { InvestmentGrowthChart, InvestmentBreakdownChart, InvestmentStackedChart } from "../charts";
+import { useTheme } from "../theme-provider";
 import { ExportControls } from "../export-controls";
 import { exportInvestmentCSV, exportInvestmentExcel } from "../../lib/export";
 import { printInvestment } from "../../lib/print";
@@ -20,6 +21,7 @@ interface InvestmentInputs {
 }
 
 export function InvestmentCalculator() {
+  const { isDark } = useTheme();
   const [inputs, setInputs] = useState<InvestmentInputs>({
     initial: 10000,
     contribution: 500,
@@ -117,7 +119,6 @@ export function InvestmentCalculator() {
   }, [inputs, monthlyContribution, effectiveRate, results, investmentSchedule]);
 
   const handlePrint = useCallback(() => {
-    const isDark = document.documentElement.classList.contains("dark");
     printInvestment({
       initial: inputs.initial,
       monthly: monthlyContribution,
@@ -128,7 +129,7 @@ export function InvestmentCalculator() {
       totalInterest: results.totalInterest,
       schedule: investmentSchedule,
     }, isDark);
-  }, [inputs, monthlyContribution, effectiveRate, results, investmentSchedule]);
+  }, [inputs, monthlyContribution, effectiveRate, results, investmentSchedule, isDark]);
 
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">

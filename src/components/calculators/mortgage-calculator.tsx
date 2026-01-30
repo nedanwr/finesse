@@ -14,6 +14,7 @@ import {
 } from "../../lib/calculations";
 import { AmortizationTable } from "../amortization-table";
 import { BalanceChart, MortgageCostChart } from "../charts";
+import { useTheme } from "../theme-provider";
 import { ExportControls } from "../export-controls";
 import { exportMortgageCSV, exportMortgageExcel } from "../../lib/export";
 import { printMortgage } from "../../lib/print";
@@ -255,6 +256,7 @@ function CustomCostInput({ cost, homePrice, onChange, onRemove }: CustomCostInpu
 }
 
 export function MortgageCalculator() {
+  const { isDark } = useTheme();
   const [inputs, setInputs] = useState<MortgageInputs>({
     homePrice: 450000,
     downPaymentValue: 20,
@@ -472,7 +474,6 @@ export function MortgageCalculator() {
   }, [inputs, results, downPaymentDollars, customCostsForExport, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
 
   const handlePrint = useCallback(() => {
-    const isDark = document.documentElement.classList.contains("dark");
     printMortgage({
       homePrice: inputs.homePrice,
       downPayment: downPaymentDollars,
@@ -489,7 +490,7 @@ export function MortgageCalculator() {
       totalInterest: loanDetails.totalInterest,
       schedule: amortizationSchedule,
     }, isDark);
-  }, [inputs, results, downPaymentDollars, customCostsForExport, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule]);
+  }, [inputs, results, downPaymentDollars, customCostsForExport, totalMonthlyWithExtras, totalCostOfOwnership, loanDetails.totalInterest, amortizationSchedule, isDark]);
 
   return (
     <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6 xl:gap-8 h-full">
