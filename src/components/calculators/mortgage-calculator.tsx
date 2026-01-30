@@ -246,6 +246,7 @@ function CustomCostInput({ cost, homePrice, onChange, onRemove }: CustomCostInpu
           value={cost.name}
           onChange={(e) => onChange({ ...cost, name: e.target.value })}
           placeholder="Cost name..."
+          aria-label="Cost name"
           className="flex-1 bg-transparent border-b border-sand text-sm text-charcoal placeholder:text-stone focus:border-terracotta focus:outline-none py-1"
         />
         <button
