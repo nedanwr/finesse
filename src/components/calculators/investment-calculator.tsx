@@ -39,7 +39,7 @@ export function InvestmentCalculator() {
 
   // Effective rate after inflation adjustment
   const effectiveRate = inputs.adjustForInflation
-    ? Math.max(0, inputs.rate - inputs.inflation)
+    ? inputs.rate - inputs.inflation
     : inputs.rate;
 
   const results = useMemo(
