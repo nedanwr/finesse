@@ -183,6 +183,7 @@ export function InvestmentCalculator() {
               prefix="$"
               id="contribution-input"
               aria-labelledby="contribution-label"
+              allowNegative
             />
           </div>
         </div>
