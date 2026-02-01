@@ -12,6 +12,7 @@ export interface InputFieldProps {
   decimals?: number;
   id?: string;
   "aria-labelledby"?: string;
+  allowNegative?: boolean;
 }
 
 export function InputField({
@@ -25,6 +26,7 @@ export function InputField({
   decimals = 0,
   id,
   "aria-labelledby": ariaLabelledBy,
+  allowNegative = false,
 }: InputFieldProps) {
   const generatedId = useId();
   const inputId = id || generatedId;
@@ -33,8 +35,10 @@ export function InputField({
 
   const formatValue = (num: number): string => {
     if (num === 0) return "";
-    const str = decimals > 0 ? num.toString() : Math.floor(num).toString();
-    return formatWithCommas(str);
+    const absValue = Math.abs(num);
+    const str = decimals > 0 ? absValue.toString() : Math.floor(absValue).toString();
+    const formatted = formatWithCommas(str);
+    return num < 0 ? `-${formatted}` : formatted;
   };
 
   const [displayValue, setDisplayValue] = useState(() => formatValue(value));
@@ -63,6 +67,10 @@ export function InputField({
     const rawValue = input.value;
     const cursorPos = input.selectionStart || 0;
 
+    // Check for leading negative sign
+    const isNegative = allowNegative && rawValue.startsWith("-");
+
+    // Strip everything except digits and decimal
     let cleaned = rawValue.replace(/[^\d.]/g, "");
 
     const decimalIndex = cleaned.indexOf(".");
@@ -80,36 +88,44 @@ export function InputField({
     }
 
     const formatted = formatWithCommas(cleaned);
+    const displayFormatted = isNegative && formatted ? `-${formatted}` : formatted;
 
+    // Count significant chars (digits and decimal) before cursor for positioning
+    const charsToCount = allowNegative ? /[^\d.-]/g : /[^\d.]/g;
     const digitsBeforeCursor = rawValue
       .slice(0, cursorPos)
-      .replace(/[^\d.]/g, "").length;
+      .replace(charsToCount, "").length;
 
     let newCursor = 0;
     let digitCount = 0;
     for (
       let i = 0;
-      i < formatted.length && digitCount < digitsBeforeCursor;
+      i < displayFormatted.length && digitCount < digitsBeforeCursor;
       i++
     ) {
       newCursor = i + 1;
-      if (/[\d.]/.test(formatted[i])) {
+      if (/[\d.-]/.test(displayFormatted[i])) {
         digitCount++;
       }
     }
     cursorRef.current = newCursor;
 
-    setDisplayValue(formatted);
+    setDisplayValue(displayFormatted);
 
-    const numericValue = parseFormattedNumber(formatted);
+    const numericValue = parseFormattedNumber(displayFormatted);
     let constrained = numericValue;
     if (max !== undefined && numericValue > max) constrained = max;
+    if (allowNegative && min !== undefined && numericValue < min) constrained = min;
     onChange(constrained);
   };
 
   const handleBlur = () => {
     let finalValue = value;
-    if (min !== undefined && value < min) finalValue = min;
+    // Only apply min constraint on blur if not allowing negative (default behavior)
+    // or if allowNegative is true and a min is explicitly set
+    if (min !== undefined && value < min && (!allowNegative || min !== 0)) {
+      finalValue = min;
+    }
     setDisplayValue(formatValue(finalValue));
     if (finalValue !== value) onChange(finalValue);
   };
