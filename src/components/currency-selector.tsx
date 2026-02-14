@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DollarSign, ChevronDown } from "lucide-react";
 
 import { getAvailableCurrencies, type Currency } from "../lib/currency";
@@ -23,13 +23,13 @@ export function CurrencySelector({ selectedCurrency, onCurrencyChange, disabled 
       .finally(() => setLoading(false));
   }, []);
 
-  const sortedCurrencies = currencies.sort((a, b) => {
+  const sortedCurrencies = useMemo(() => [...currencies].sort((a, b) => {
     const aIsCommon = COMMON_CURRENCIES.includes(a.code);
     const bIsCommon = COMMON_CURRENCIES.includes(b.code);
     if (aIsCommon && !bIsCommon) return -1;
     if (!aIsCommon && bIsCommon) return 1;
     return a.code.localeCompare(b.code);
-  });
+  }), [currencies]);
 
   const selectedCurrencyData = currencies.find(c => c.code === selectedCurrency);
 
