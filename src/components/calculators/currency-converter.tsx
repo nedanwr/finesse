@@ -138,35 +138,37 @@ export function CurrencyConverter() {
         </div>
       )}
 
-      <div className="bg-cream rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-charcoal mb-2">Exchange Rate Details</h3>
-        <div className="space-y-1 text-sm">
-          <div className="flex justify-between">
-            <span className="text-slate">Rate</span>
-            <span className="text-charcoal">
-              1 {fromCurrency} = {result.rate.toFixed(6)} {toCurrency}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-slate">Inverse Rate</span>
-            <span className="text-charcoal">
-              1 {toCurrency} = {(1 / result.rate).toFixed(6)} {fromCurrency}
-            </span>
-          </div>
-          <div className="flex justify-between pt-2 border-t border-sand">
-            <span className="font-semibold text-charcoal">Original Amount</span>
-            <span className="font-semibold text-charcoal">
-              {formatCurrencyPrecise(amount, fromCurrency)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="font-semibold text-charcoal">Converted Amount</span>
-            <span className="font-semibold text-charcoal">
-              {formatCurrencyPrecise(result.convertedAmount, toCurrency)}
-            </span>
+      {!result.isLoading && !result.error && (
+        <div className="bg-cream rounded-xl p-4">
+          <h3 className="text-sm font-semibold text-charcoal mb-2">Exchange Rate Details</h3>
+          <div className="space-y-1 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate">Rate</span>
+              <span className="text-charcoal">
+                1 {fromCurrency} = {result.rate.toFixed(6)} {toCurrency}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate">Inverse Rate</span>
+              <span className="text-charcoal">
+                1 {toCurrency} = {(1 / result.rate).toFixed(6)} {fromCurrency}
+              </span>
+            </div>
+            <div className="flex justify-between pt-2 border-t border-sand">
+              <span className="font-semibold text-charcoal">Original Amount</span>
+              <span className="font-semibold text-charcoal">
+                {formatCurrencyPrecise(amount, fromCurrency)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-semibold text-charcoal">Converted Amount</span>
+              <span className="font-semibold text-charcoal">
+                {formatCurrencyPrecise(result.convertedAmount, toCurrency)}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
