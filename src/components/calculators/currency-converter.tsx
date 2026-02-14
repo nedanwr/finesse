@@ -20,7 +20,7 @@ export function CurrencyConverter() {
   const [result, setResult] = useState<ConversionResult>({
     convertedAmount: 0,
     rate: 1,
-    isLoading: false,
+    isLoading: true,
     error: null,
   });
   const requestIdRef = useRef(0);
