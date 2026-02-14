@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Percent, Home, TrendingUp, DollarSign, type LucideIcon } from "lucide-react";
+import { Percent, Home, TrendingUp, DollarSign } from "lucide-react";
 
 import { ThemeSwitcher } from "./components/theme-switcher";
 import { LoanCalculator } from "./components/calculators/loan-calculator";
@@ -8,6 +8,8 @@ import { InvestmentCalculator } from "./components/calculators/investment-calcul
 import { CurrencyConverter } from "./components/calculators/currency-converter";
 
 type CalculatorMode = "loan" | "mortgage" | "investment" | "currency";
+
+type LucideIcon = React.ComponentType<{ size?: number; className?: string }>;
 
 const modes: { id: CalculatorMode; label: string; icon: LucideIcon }[] = [
   { id: "loan", label: "Loan", icon: Percent },
