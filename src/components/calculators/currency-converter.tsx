@@ -151,7 +151,7 @@ export function CurrencyConverter() {
             <div className="flex justify-between">
               <span className="text-slate">Inverse Rate</span>
               <span className="text-charcoal">
-                1 {toCurrency} = {(1 / result.rate).toFixed(6)} {fromCurrency}
+                1 {toCurrency} = {Number.isFinite(result.rate) && result.rate !== 0 ? `${(1 / result.rate).toFixed(6)} ${fromCurrency}` : "N/A"}
               </span>
             </div>
             <div className="flex justify-between pt-2 border-t border-sand">
