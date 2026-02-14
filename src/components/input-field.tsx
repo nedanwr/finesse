@@ -88,7 +88,8 @@ export function InputField({
     }
 
     const formatted = formatWithCommas(cleaned);
-    const displayFormatted = isNegative && formatted ? `-${formatted}` : formatted;
+    // Preserve the minus sign even when no digits entered yet
+    const displayFormatted = isNegative ? `-${formatted}` : formatted;
 
     // Count significant chars (digits and decimal) before cursor for positioning
     const charsToCount = allowNegative ? /[^\d.-]/g : /[^\d.]/g;
