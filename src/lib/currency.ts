@@ -66,8 +66,7 @@ export async function getExchangeRate(
     exchangeRatesCache.set(cacheKey, { ...data, fetchedAt: Date.now() });
     return data.rates[to];
   } catch (error) {
-    console.error("Error fetching exchange rate:", error);
-    return 1;
+    throw new Error(`Failed to get exchange rate from ${from} to ${to}: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
