@@ -116,7 +116,7 @@ export function InputField({
     const numericValue = parseFormattedNumber(displayFormatted);
     let constrained = numericValue;
     if (max !== undefined && numericValue > max) constrained = max;
-    if (allowNegative && min !== undefined && numericValue < min) constrained = min;
+    if (min !== undefined && numericValue < min && (!allowNegative || min !== 0)) constrained = min;
     onChange(constrained);
   };
 
