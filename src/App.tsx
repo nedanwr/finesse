@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { Percent, Home, TrendingUp, type LucideIcon } from "lucide-react";
+import { Percent, Home, TrendingUp, DollarSign, type LucideIcon } from "lucide-react";
 
 import { ThemeSwitcher } from "./components/theme-switcher";
 import { LoanCalculator } from "./components/calculators/loan-calculator";
 import { MortgageCalculator } from "./components/calculators/mortgage-calculator";
 import { InvestmentCalculator } from "./components/calculators/investment-calculator";
+import { CurrencyConverter } from "./components/calculators/currency-converter";
 
-type CalculatorMode = "loan" | "mortgage" | "investment";
+type CalculatorMode = "loan" | "mortgage" | "investment" | "currency";
 
 const modes: { id: CalculatorMode; label: string; icon: LucideIcon }[] = [
   { id: "loan", label: "Loan", icon: Percent },
   { id: "mortgage", label: "Mortgage", icon: Home },
   { id: "investment", label: "Invest", icon: TrendingUp },
+  { id: "currency", label: "Currency", icon: DollarSign },
 ];
 
 interface ModeButtonProps {
@@ -111,6 +113,11 @@ function App() {
           </div>
           <div className={mode === "investment" ? "" : "hidden"}>
             <InvestmentCalculator />
+          </div>
+          <div className={mode === "currency" ? "" : "hidden"}>
+            <div className="flex items-center justify-center h-full py-8">
+              <CurrencyConverter />
+            </div>
           </div>
         </div>
       </main>
