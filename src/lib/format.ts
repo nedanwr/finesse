@@ -7,10 +7,10 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
-export function formatCurrencyPrecise(value: number): string {
+export function formatCurrencyPrecise(value: number, currencyCode: string = "USD"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency: currencyCode,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);

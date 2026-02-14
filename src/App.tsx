@@ -1,17 +1,21 @@
 import { useState } from "react";
-import { Percent, Home, TrendingUp, type LucideIcon } from "lucide-react";
+import { Percent, Home, TrendingUp, DollarSign } from "lucide-react";
 
 import { ThemeSwitcher } from "./components/theme-switcher";
 import { LoanCalculator } from "./components/calculators/loan-calculator";
 import { MortgageCalculator } from "./components/calculators/mortgage-calculator";
 import { InvestmentCalculator } from "./components/calculators/investment-calculator";
+import { CurrencyConverter } from "./components/calculators/currency-converter";
 
-type CalculatorMode = "loan" | "mortgage" | "investment";
+type CalculatorMode = "loan" | "mortgage" | "investment" | "currency";
+
+type LucideIcon = React.ComponentType<{ size?: number; className?: string }>;
 
 const modes: { id: CalculatorMode; label: string; icon: LucideIcon }[] = [
   { id: "loan", label: "Loan", icon: Percent },
   { id: "mortgage", label: "Mortgage", icon: Home },
   { id: "investment", label: "Invest", icon: TrendingUp },
+  { id: "currency", label: "Currency", icon: DollarSign },
 ];
 
 interface ModeButtonProps {
@@ -100,12 +104,23 @@ function App() {
         <ModeSwitcher currentMode={mode} onModeChange={setMode} variant="mobile" />
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - All calculators rendered, inactive ones hidden to preserve state */}
       <main className="relative flex-1 min-h-0 overflow-y-auto">
         <div className="max-w-[1600px] mx-auto px-4 xl:px-8 py-4 lg:h-full">
-          {mode === "loan" && <LoanCalculator />}
-          {mode === "mortgage" && <MortgageCalculator />}
-          {mode === "investment" && <InvestmentCalculator />}
+          <div className={mode === "loan" ? "" : "hidden"}>
+            <LoanCalculator />
+          </div>
+          <div className={mode === "mortgage" ? "" : "hidden"}>
+            <MortgageCalculator />
+          </div>
+          <div className={mode === "investment" ? "" : "hidden"}>
+            <InvestmentCalculator />
+          </div>
+          <div className={mode === "currency" ? "" : "hidden"}>
+            <div className="flex items-center justify-center h-full py-8">
+              <CurrencyConverter />
+            </div>
+          </div>
         </div>
       </main>
     </div>
