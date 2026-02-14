@@ -100,12 +100,18 @@ function App() {
         <ModeSwitcher currentMode={mode} onModeChange={setMode} variant="mobile" />
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - All calculators rendered, inactive ones hidden to preserve state */}
       <main className="relative flex-1 min-h-0 overflow-y-auto">
         <div className="max-w-[1600px] mx-auto px-4 xl:px-8 py-4 lg:h-full">
-          {mode === "loan" && <LoanCalculator />}
-          {mode === "mortgage" && <MortgageCalculator />}
-          {mode === "investment" && <InvestmentCalculator />}
+          <div className={mode === "loan" ? "" : "hidden"}>
+            <LoanCalculator />
+          </div>
+          <div className={mode === "mortgage" ? "" : "hidden"}>
+            <MortgageCalculator />
+          </div>
+          <div className={mode === "investment" ? "" : "hidden"}>
+            <InvestmentCalculator />
+          </div>
         </div>
       </main>
     </div>
