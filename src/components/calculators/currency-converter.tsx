@@ -82,6 +82,7 @@ export function CurrencyConverter() {
             onChange={setAmount}
             min={0}
             max={1000000000}
+            decimals={2}
           />
         </div>
 
