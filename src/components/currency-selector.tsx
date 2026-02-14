@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useId } from "react";
 import { DollarSign, ChevronDown } from "lucide-react";
 
 import { getAvailableCurrencies, type Currency } from "../lib/currency";
@@ -16,6 +16,7 @@ export function CurrencySelector({ selectedCurrency, onCurrencyChange, disabled 
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const id = useId();
 
   useEffect(() => {
     getAvailableCurrencies()
@@ -36,12 +37,12 @@ export function CurrencySelector({ selectedCurrency, onCurrencyChange, disabled 
   return (
     <div className="relative">
       {!hideLabel && (
-        <label htmlFor="currency-selector" className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
+        <label htmlFor={id} className="block text-xs font-medium text-slate mb-1.5 tracking-wide uppercase">
           Currency
         </label>
       )}
       <button
-        id="currency-selector"
+        id={id}
         type="button"
         onClick={() => !disabled && !loading && setIsOpen(!isOpen)}
         disabled={disabled || loading}
