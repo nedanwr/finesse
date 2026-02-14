@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DollarSign } from "lucide-react";
+import { DollarSign, ChevronDown } from "lucide-react";
 
 import { getAvailableCurrencies, type Currency } from "../lib/currency";
 
@@ -56,12 +56,11 @@ export function CurrencySelector({ selectedCurrency, onCurrencyChange, disabled 
           <DollarSign size={18} aria-hidden="true" />
           {loading ? "Loading..." : selectedCurrencyData ? `${selectedCurrencyData.code} - ${selectedCurrencyData.name}` : selectedCurrency}
         </span>
-        <span
-          className={`transform transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+        <ChevronDown
+          size={16}
+          className={`transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           aria-hidden="true"
-        >
-          ▼
-        </span>
+        />
       </button>
 
       {isOpen && !loading && (
