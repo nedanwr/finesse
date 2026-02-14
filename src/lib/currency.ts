@@ -10,8 +10,12 @@ export interface ExchangeRate {
   rates: Record<string, number>;
 }
 
+interface CacheEntry extends ExchangeRate {
+  fetchedAt: number;
+}
+
 let currenciesCache: Currency[] | null = null;
-const exchangeRatesCache = new Map<string, ExchangeRate>();
+const exchangeRatesCache = new Map<string, CacheEntry>();
 const CACHE_DURATION_MS = 1000 * 60 * 60;
 
 export async function getAvailableCurrencies(): Promise<Currency[]> {
@@ -47,7 +51,7 @@ export async function getExchangeRate(
   const cacheKey = `${from}-${to}`;
   const cached = exchangeRatesCache.get(cacheKey);
 
-  if (cached && Date.now() - new Date(cached.date).getTime() < CACHE_DURATION_MS) {
+  if (cached && Date.now() - cached.fetchedAt < CACHE_DURATION_MS) {
     return cached.rates[to];
   }
 
@@ -59,7 +63,7 @@ export async function getExchangeRate(
       throw new Error("Failed to fetch exchange rate");
     }
     const data: ExchangeRate = await response.json();
-    exchangeRatesCache.set(cacheKey, data);
+    exchangeRatesCache.set(cacheKey, { ...data, fetchedAt: Date.now() });
     return data.rates[to];
   } catch (error) {
     console.error("Error fetching exchange rate:", error);
