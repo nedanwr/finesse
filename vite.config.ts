@@ -12,4 +12,22 @@ export default defineConfig({
     }),
     tailwindcss(),
   ],
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules/exceljs")) {
+            return "exceljs";
+          }
+          if (id.includes("node_modules/recharts")) {
+            return "recharts";
+          }
+          if (id.includes("node_modules/lucide-react")) {
+            return "lucide-react";
+          }
+        },
+      },
+    },
+  },
 });
