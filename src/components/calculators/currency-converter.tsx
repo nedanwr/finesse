@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowRightLeft } from "lucide-react";
 
 import { CurrencySelector } from "../currency-selector";
 import { formatCurrencyPrecise } from "../../lib/format";
-import { convertAmount, getExchangeRate } from "../../lib/currency";
+import { getExchangeRate } from "../../lib/currency";
 import { InputField } from "../input-field";
 
 interface ConversionResult {
@@ -23,28 +23,34 @@ export function CurrencyConverter() {
     isLoading: false,
     error: null,
   });
+  const requestIdRef = useRef(0);
 
   const performConversion = useCallback(async () => {
+    const currentRequestId = ++requestIdRef.current;
     setResult((prev) => ({ ...prev, isLoading: true, error: null }));
 
     try {
       const rate = await getExchangeRate(fromCurrency, toCurrency);
-      const convertedAmount = await convertAmount(amount, fromCurrency, toCurrency);
+      const convertedAmount = rate * amount;
 
-      setResult({
-        convertedAmount,
-        rate,
-        isLoading: false,
-        error: null,
-      });
+      if (currentRequestId === requestIdRef.current) {
+        setResult({
+          convertedAmount,
+          rate,
+          isLoading: false,
+          error: null,
+        });
+      }
     } catch {
-      setResult((prev) => ({
-        ...prev,
-        convertedAmount: 0,
-        rate: 1,
-        isLoading: false,
-        error: "Failed to get exchange rate",
-      }));
+      if (currentRequestId === requestIdRef.current) {
+        setResult((prev) => ({
+          ...prev,
+          convertedAmount: 0,
+          rate: 1,
+          isLoading: false,
+          error: "Failed to get exchange rate",
+        }));
+      }
     }
   }, [amount, fromCurrency, toCurrency]);
 
