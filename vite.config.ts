@@ -29,5 +29,9 @@ export default defineConfig({
         },
       },
     },
+    target: "esnext",
+  },
+  optimizeDeps: {
+    include: ["lucide-react"],
   },
 });
